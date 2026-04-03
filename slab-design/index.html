@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IBS Slab Design Tool — IS 456 | IS 875</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏗️</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════════ -->
+<header class="app-header">
+  <div class="header-brand">
+    <div class="header-logo">🏗️</div>
+    <div>
+      <div class="header-name">IBS <span>Slab Design Tool</span></div>
+    </div>
+  </div>
+  <div style="display:flex; gap:10px; align-items:center;">
+    <span class="header-tag">IS 456 : 2000</span>
+    <span class="header-tag">IS 875 : 1987</span>
+    <a href="../index.html" style="font-size:12px;color:var(--text-muted);text-decoration:none;margin-left:10px;">← All Tools</a>
+  </div>
+</header>
+
+<!-- ════════════════════════════════════════════
+     STEPPER
+══════════════════════════════════════════════ -->
+<nav class="stepper">
+  <div class="step-item current" id="step-nav-1">
+    <div class="step-num">1</div>
+    <span class="step-label">Material Config</span>
+  </div>
+  <div class="step-divider"></div>
+  <div class="step-item" id="step-nav-2">
+    <div class="step-num">2</div>
+    <span class="step-label">Define Slabs</span>
+  </div>
+  <div class="step-divider"></div>
+  <div class="step-item" id="step-nav-3">
+    <div class="step-num">3</div>
+    <span class="step-label">Load Review</span>
+  </div>
+  <div class="step-divider"></div>
+  <div class="step-item" id="step-nav-4">
+    <div class="step-num">4</div>
+    <span class="step-label">Processing</span>
+  </div>
+  <div class="step-divider"></div>
+  <div class="step-item" id="step-nav-5">
+    <div class="step-num">5</div>
+    <span class="step-label">Results</span>
+  </div>
+</nav>
+
+<!-- ════════════════════════════════════════════
+     MAIN CONTENT
+══════════════════════════════════════════════ -->
+<main class="main-content">
+
+  <!-- ── STEP 1: Material Configuration ── -->
+  <section class="step-panel active" id="panel-1">
+    <div class="panel-header">
+      <h2>⚙️ Material & Design Configuration</h2>
+      <p>Set global IS 456 material parameters and design control values applied to all slabs.</p>
+    </div>
+
+    <div class="info-box">
+      ℹ️ These parameters apply globally to all slabs. Concrete grade, steel grade, and cover should match project specifications.
+    </div>
+
+    <div class="card">
+      <div class="card-title">Concrete & Steel — IS 456 : 2000</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Concrete Grade (fck) <span class="code-ref">IS 456 Cl. 6.1</span></label>
+          <select id="fck-select">
+            <option value="15">M15 — 15 MPa</option>
+            <option value="20">M20 — 20 MPa</option>
+            <option value="25" selected>M25 — 25 MPa</option>
+            <option value="30">M30 — 30 MPa</option>
+            <option value="35">M35 — 35 MPa</option>
+            <option value="40">M40 — 40 MPa</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Steel Grade (fy) <span class="code-ref">IS 1786</span></label>
+          <select id="fy-select">
+            <option value="250">Fe 250 — Mild Steel</option>
+            <option value="415" selected>Fe 415 — HYSD</option>
+            <option value="500">Fe 500 — HYSD</option>
+            <option value="550">Fe 550 — HYSD</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Nominal Cover <span class="code-ref">IS 456 Table 16</span></label>
+          <select id="cover-select">
+            <option value="15">15 mm — Mild</option>
+            <option value="20">20 mm — Moderate (default)</option>
+            <option value="25" selected>25 mm — Moderate+</option>
+            <option value="30">30 mm — Severe</option>
+            <option value="40">40 mm — Very Severe</option>
+            <option value="50">50 mm — Extreme</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Load Factor (Lf) <span class="code-ref">IS 456 Cl. 18.2</span></label>
+          <input type="number" id="load-factor" value="1.5" step="0.05" min="1.0" max="2.0">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Finishing Load & Serviceability</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Finishing Load <span class="code-ref">IS 875 Pt.1</span></label>
+          <input type="number" id="finish-load" value="100" placeholder="kg/m²">
+        </div>
+        <div class="form-group">
+          <label>Deflection Limit (L/N) <span class="code-ref">IS 456 Cl. 23.2</span></label>
+          <input type="number" id="delta-ratio" value="350" min="200" max="500">
+        </div>
+        <div class="form-group">
+          <label>Absolute Max Deflection <span class="code-ref">IS 456 Cl. 23.2</span></label>
+          <input type="number" id="delta-max" value="20" placeholder="mm">
+        </div>
+        <div class="form-group">
+          <label>Min Slab Thickness <span class="code-ref">IS 456 Cl. 24.1</span></label>
+          <input type="number" id="min-thick" value="120" placeholder="mm">
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-step1-next">Continue → Define Slabs</button>
+    </div>
+  </section>
+
+  <!-- ── STEP 2: Define Slabs ── -->
+  <section class="step-panel" id="panel-2">
+    <div class="panel-header">
+      <h2>📐 Define Slab Panels</h2>
+      <p>Add each slab panel. Building type and occupancy automatically assigns IS 875 live loads.</p>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+      <span style="font-size:13px; color:var(--text-muted);" id="slab-count-label">0 slab(s) defined</span>
+      <button class="btn btn-outline" id="btn-add-slab">＋ Add Slab</button>
+    </div>
+
+    <div class="slab-grid" id="slab-list"></div>
+
+    <div class="btn-row" style="margin-top:1.5rem;">
+      <button class="btn btn-secondary" id="btn-step2-back">← Back</button>
+      <button class="btn btn-primary" id="btn-step2-next">Review Loads →</button>
+    </div>
+  </section>
+
+  <!-- ── STEP 3: Load Review & Approval ── -->
+  <section class="step-panel" id="panel-3">
+    <div class="panel-header">
+      <h2>✅ Load Review & Approval</h2>
+      <p>Review all assigned loads for each slab. Approve before proceeding to design.</p>
+    </div>
+
+    <div class="info-box">
+      ⚠️ Please verify all loads carefully. Live loads are per IS 875 (Part 2):1987. Filling loads are computed from thickness × material density. Tick each slab to approve.
+    </div>
+
+    <div id="load-review-container"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="btn-step3-back">← Back</button>
+      <button class="btn btn-success" id="btn-step3-design">🚀 Run Design</button>
+    </div>
+  </section>
+
+  <!-- ── STEP 4: Processing ── -->
+  <section class="step-panel" id="panel-4">
+    <div class="progress-container">
+      <div class="progress-icon pulse">⚙️</div>
+      <div class="progress-title">Running IS 456 Design Engine</div>
+      <div class="progress-sub">Iterating slab thickness · Computing moments · Selecting reinforcement</div>
+      <div class="progress-bar-bg">
+        <div id="progress-bar"></div>
+      </div>
+      <div style="margin-top:1rem; font-size:12px; color:var(--text-dim); font-family:var(--font-mono);">
+        IS 456 : 2000 &nbsp;|&nbsp; IS 875 : 1987 &nbsp;|&nbsp; Integrated Building Services
+      </div>
+    </div>
+  </section>
+
+  <!-- ── STEP 5: Results ── -->
+  <section class="step-panel" id="panel-5">
+    <div class="panel-header">
+      <h2>📊 Design Results</h2>
+      <p>IS 456 : 2000 slab design output. All results are for guidance; engineer's judgment applies.</p>
+    </div>
+
+    <div id="summary-bar" class="summary-bar"></div>
+
+    <div id="results-container"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="location.reload()">🔄 New Design</button>
+      <button class="btn btn-outline" id="btn-export">⬇️ Export CSV</button>
+    </div>
+
+    <div style="margin-top:2rem; padding:1rem; border:1px solid var(--border); border-radius:var(--radius); font-size:11px; color:var(--text-dim); line-height:1.8;">
+      <strong style="color:var(--text-muted);">DISCLAIMER</strong><br>
+      Results are generated using IS 456 : 2000 and IS 875 : 1987 methodologies and are for preliminary design guidance only.
+      Integrated Building Services (IBS) shall not be held liable for any direct application of these results.
+      All designs must be verified by a qualified structural engineer in accordance with applicable Indian Standards
+      and site-specific conditions before execution.
+    </div>
+  </section>
+
+</main>
+
+<!-- ════════════════════════════════════════════
+     SLAB EDITOR MODAL
+══════════════════════════════════════════════ -->
+<div id="modal-overlay"></div>
+
+<div id="slab-modal">
+  <div class="modal-header">
+    <h3>📐 Slab Panel Editor</h3>
+    <button class="modal-close" id="btn-cancel-slab">✕</button>
+  </div>
+  <div class="modal-body">
+
+    <!-- Basic Info -->
+    <div class="modal-section">
+      <div class="modal-section-title">Panel Identity & Dimensions</div>
+      <div class="form-grid">
+        <div class="form-group" style="grid-column:1/-1;">
+          <label>Panel Label</label>
+          <input type="text" id="slab-label" placeholder="e.g. Living Room, Toilet, Roof Slab">
+        </div>
+        <div class="form-group">
+          <label>Lx — Shorter Span (m)</label>
+          <input type="number" id="slab-lx" step="0.1" min="0.5" max="20" placeholder="e.g. 3.5">
+        </div>
+        <div class="form-group">
+          <label>Ly — Longer Span (m)</label>
+          <input type="number" id="slab-ly" step="0.1" min="0.5" max="30" placeholder="e.g. 5.0">
+        </div>
+      </div>
+    </div>
+
+    <!-- Building / Occupancy Type -->
+    <div class="modal-section">
+      <div class="modal-section-title">Occupancy Classification — IS 875 Part 2</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Building Type</label>
+          <select id="building-type">
+            <option value="residential">🏠 Residential</option>
+            <option value="office">🏢 Office</option>
+            <option value="educational">🏫 Educational</option>
+            <option value="hospital">🏥 Hospital</option>
+            <option value="industrial">🏭 Industrial / Factory</option>
+            <option value="assembly">🏛️ Assembly & Public</option>
+            <option value="parking">🅿️ Parking</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Space / Habitation Type</label>
+          <select id="space-type"></select>
+        </div>
+      </div>
+      <div class="ll-display-box" id="ll-display">Select a space type to see live load</div>
+    </div>
+
+    <!-- Sunk Slab -->
+    <div class="modal-section">
+      <div class="modal-section-title">Additional Filling Loads</div>
+
+      <div class="filling-toggle">
+        <input type="checkbox" id="has-sunk">
+        <label for="has-sunk">Sunk Slab (Depressed Toilet / Bathroom)</label>
+      </div>
+      <div class="filling-details" id="sunk-details">
+        <div class="form-group">
+          <label>Fill Thickness (mm)</label>
+          <input type="number" id="sunk-thick" placeholder="e.g. 300" min="0" max="1000">
+        </div>
+        <div class="form-group">
+          <label>Fill Material</label>
+          <select id="sunk-material"></select>
+        </div>
+      </div>
+
+      <!-- Waterproofing -->
+      <div class="filling-toggle" style="margin-top:0.75rem;">
+        <input type="checkbox" id="has-wp">
+        <label for="has-wp">Waterproofing Treatment Layer</label>
+      </div>
+      <div class="filling-details" id="wp-details">
+        <div class="form-group">
+          <label>WP Layer Thickness (mm)</label>
+          <input type="number" id="wp-thick" placeholder="e.g. 50" min="0" max="500">
+        </div>
+        <div class="form-group">
+          <label>WP Material</label>
+          <select id="wp-material"></select>
+        </div>
+      </div>
+
+      <!-- Cobba -->
+      <div class="filling-toggle" style="margin-top:0.75rem;">
+        <input type="checkbox" id="has-cobba">
+        <label for="has-cobba">Cobba / Brick Jelly Fill (Roof Slabs)</label>
+      </div>
+      <div class="filling-details" id="cobba-details">
+        <div class="form-group">
+          <label>Cobba Thickness (mm)</label>
+          <input type="number" id="cobba-thick" placeholder="e.g. 150" min="0" max="800">
+        </div>
+        <div class="form-group">
+          <label>Cobba / Fill Material</label>
+          <select id="cobba-material"></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row" style="margin-top:0.5rem;">
+      <button class="btn btn-secondary" id="btn-cancel-slab-bottom">Cancel</button>
+      <button class="btn btn-primary" id="btn-save-slab">✓ Save Slab</button>
+    </div>
+
+  </div><!-- /modal-body -->
+</div><!-- /slab-modal -->
+
+<!-- ════════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════════ -->
+<script src="data/is875_loads.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/app.js"></script>
+
+<script>
+  // Wire up stepper nav clicks to steps array
+  const stepItems = document.querySelectorAll('.step-item');
+  stepItems.forEach((el, i) => {
+    el.id = `step-nav-${i+1}`;
+  });
+
+  // Wire second cancel button
+  document.getElementById('btn-cancel-slab-bottom').addEventListener('click', () => {
+    document.getElementById('slab-modal').classList.remove('open');
+  });
+
+  // Modal overlay
+  document.getElementById('modal-overlay').addEventListener('click', () => {
+    document.getElementById('slab-modal').classList.remove('open');
+  });
+
+  // Update slab count label whenever slabs change
+  const slabCountObs = new MutationObserver(() => {
+    const n = document.querySelectorAll('.slab-card').length;
+    const label = document.getElementById('slab-count-label');
+    if (label) label.textContent = `${n} slab${n !== 1 ? 's' : ''} defined`;
+  });
+  const slabList = document.getElementById('slab-list');
+  if (slabList) slabCountObs.observe(slabList, { childList: true });
+</script>
+
+</body>
+</html>
