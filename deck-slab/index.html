@@ -900,7 +900,7 @@ function generatePDF(){
     const h=7;
     doc.setFillColor(ok?235:255,ok?248:235,ok?240:235);
     doc.rect(M,y,cw,h,'F');
-    doc.setFillColor(ok?...green:...red);
+    if(ok){doc.setFillColor(green[0],green[1],green[2]);}else{doc.setFillColor(red[0],red[1],red[2]);}
     doc.rect(M,y,3,h,'F');
     doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(...textdark);
     doc.text(name,M+5,y+5);
@@ -908,7 +908,7 @@ function generatePDF(){
     doc.text(actual,M+cw*0.38,y+5);
     doc.text(limit,M+cw*0.58,y+5);
     doc.setFont('helvetica','bold');doc.setFontSize(8);
-    doc.setTextColor(ok?...green:...red);
+    if(ok){doc.setTextColor(green[0],green[1],green[2]);}else{doc.setTextColor(red[0],red[1],red[2]);}
     doc.text(ok?'PASS':'FAIL',W-M-2,y+5,{align:'right'});
     doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(...midgrey);
     doc.text(clause,M+cw*0.76,y+5);
