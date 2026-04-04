@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Composite Deck Slab Design | IS 11384:2022</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0d14;
+    --bg2: #111520;
+    --bg3: #181e2e;
+    --panel: #1a2035;
+    --border: #2a3550;
+    --accent: #e8a020;
+    --accent2: #f0c060;
+    --blue: #3a7bd5;
+    --green: #2ecc71;
+    --red: #e74c3c;
+    --orange: #e67e22;
+    --text: #c8d4e8;
+    --text2: #7a8fae;
+    --text3: #4a5a7a;
+    --white: #eaf0ff;
+    --pass: #1a3a2a;
+    --pass-border: #2ecc71;
+    --fail: #3a1a1a;
+    --fail-border: #e74c3c;
+    --warn: #3a2a0a;
+    --warn-border: #e8a020;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(58,123,213,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(58,123,213,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 0 20px; }
+
+  /* Header */
+  header {
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(26,32,53,0.95) 0%, transparent 100%);
+    backdrop-filter: blur(10px);
+    position: sticky; top: 0; z-index: 100;
+    padding: 0 20px;
+  }
+  .header-inner {
+    max-width: 1400px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 0;
+  }
+  .logo {
+    display: flex; flex-direction: column;
+  }
+  .logo-main {
+    font-size: 22px; font-weight: 700; letter-spacing: 2px;
+    color: var(--white);
+    text-transform: uppercase;
+  }
+  .logo-main span { color: var(--accent); }
+  .logo-sub {
+    font-size: 11px; color: var(--text2); letter-spacing: 3px;
+    font-family: 'DM Mono', monospace;
+  }
+  .header-badge {
+    display: flex; gap: 8px; align-items: center;
+  }
+  .badge {
+    padding: 4px 10px; border-radius: 3px;
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    letter-spacing: 1px; text-transform: uppercase;
+  }
+  .badge-code { background: rgba(232,160,32,0.15); border: 1px solid rgba(232,160,32,0.4); color: var(--accent); }
+  .badge-firm { background: rgba(58,123,213,0.15); border: 1px solid rgba(58,123,213,0.4); color: #7ab4ff; }
+
+  /* Main Layout */
+  .main-layout {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    gap: 0;
+    min-height: calc(100vh - 65px);
+  }
+
+  /* Input Panel */
+  .input-panel {
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    padding: 24px;
+    overflow-y: auto;
+    max-height: calc(100vh - 65px);
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .section-title {
+    font-size: 10px; font-family: 'DM Mono', monospace;
+    letter-spacing: 3px; color: var(--accent);
+    text-transform: uppercase;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title::before {
+    content: '▶'; font-size: 7px;
+  }
+
+  .form-group { margin-bottom: 14px; }
+  .form-label {
+    display: block; font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text2); letter-spacing: 1px;
+    margin-bottom: 6px; text-transform: uppercase;
+  }
+  .form-label .unit {
+    color: var(--text3); font-size: 10px;
+  }
+
+  .form-control {
+    width: 100%; padding: 9px 12px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--white);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    appearance: none;
+  }
+  .form-control:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(232,160,32,0.15);
+  }
+  .form-control option { background: var(--bg3); }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+  .radio-group { display: flex; gap: 8px; flex-wrap: wrap; }
+  .radio-btn {
+    flex: 1; min-width: 80px;
+    padding: 8px 10px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+    font-size: 12px; font-weight: 600;
+    color: var(--text2);
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+  .radio-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .radio-btn.active {
+    background: rgba(232,160,32,0.15);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .radio-btn input { display: none; }
+
+  .profile-card {
+    display: flex; flex-direction: column;
+    gap: 4px; padding: 10px 12px;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 4px; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .profile-card:hover { border-color: var(--blue); }
+  .profile-card.active { border-color: var(--accent); background: rgba(232,160,32,0.08); }
+  .profile-card .pname { font-size: 14px; font-weight: 700; color: var(--white); }
+  .profile-card .pdesc { font-size: 10px; color: var(--text2); font-family: 'DM Mono', monospace; }
+  .profile-card .ptag {
+    display: inline-block; padding: 1px 6px;
+    border-radius: 2px; font-size: 9px; font-weight: 600;
+    letter-spacing: 1px; margin-top: 2px;
+  }
+  .tag-composite { background: rgba(46,204,113,0.15); color: var(--green); border: 1px solid rgba(46,204,113,0.3); }
+  .tag-noncomposite { background: rgba(231,76,60,0.15); color: var(--red); border: 1px solid rgba(231,76,60,0.3); }
+  .profile-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+  .warning-box {
+    padding: 10px 12px; border-radius: 4px;
+    background: var(--warn); border: 1px solid var(--warn-border);
+    font-size: 11px; color: var(--accent2); line-height: 1.5;
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 14px; display: none;
+  }
+  .warning-box.show { display: block; }
+
+  .calc-btn {
+    width: 100%; padding: 14px;
+    background: var(--accent);
+    border: none; border-radius: 4px;
+    color: #0a0d14; font-family: 'Rajdhani', sans-serif;
+    font-size: 15px; font-weight: 700; letter-spacing: 3px;
+    text-transform: uppercase; cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+  .calc-btn:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(232,160,32,0.3); }
+  .calc-btn:active { transform: translateY(0); }
+
+  .reset-btn {
+    width: 100%; padding: 9px;
+    background: transparent;
+    border: 1px solid var(--border); border-radius: 4px;
+    color: var(--text2); font-family: 'Rajdhani', sans-serif;
+    font-size: 12px; font-weight: 600; letter-spacing: 2px;
+    text-transform: uppercase; cursor: pointer;
+    transition: all 0.2s; margin-top: 8px;
+  }
+  .reset-btn:hover { border-color: var(--text2); color: var(--text); }
+
+  .form-section { margin-bottom: 24px; }
+
+  /* Results Panel */
+  .results-panel {
+    padding: 24px;
+    overflow-y: auto;
+    max-height: calc(100vh - 65px);
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .results-placeholder {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    height: 100%; min-height: 400px;
+    color: var(--text3);
+  }
+  .results-placeholder .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+  .results-placeholder p { font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 1px; }
+
+  /* Overall status */
+  .overall-status {
+    padding: 16px 20px; border-radius: 6px;
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 20px;
+    animation: fadeIn 0.4s ease;
+  }
+  .overall-status.pass { background: var(--pass); border: 1px solid var(--pass-border); }
+  .overall-status.fail { background: var(--fail); border: 1px solid var(--fail-border); }
+  .status-icon { font-size: 28px; }
+  .status-title { font-size: 20px; font-weight: 700; }
+  .status-title.pass { color: var(--green); }
+  .status-title.fail { color: var(--red); }
+  .status-sub { font-size: 12px; color: var(--text2); font-family: 'DM Mono', monospace; }
+
+  /* Results grid */
+  .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+
+  .result-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    animation: fadeIn 0.4s ease;
+  }
+  .result-card-header {
+    padding: 10px 14px;
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid var(--border);
+    font-size: 10px; font-family: 'DM Mono', monospace;
+    letter-spacing: 2px; color: var(--text2);
+    text-transform: uppercase;
+  }
+  .result-card-body { padding: 14px; }
+
+  .result-row {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(42,53,80,0.5);
+    font-size: 13px;
+  }
+  .result-row:last-child { border-bottom: none; }
+  .result-label { color: var(--text2); font-size: 12px; flex: 1; }
+  .result-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px; color: var(--white);
+    font-weight: 500; text-align: right;
+  }
+  .result-value .unit { color: var(--text2); font-size: 10px; margin-left: 2px; }
+
+  /* Check items */
+  .checks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .check-item {
+    padding: 12px 14px; border-radius: 5px;
+    display: flex; flex-direction: column; gap: 6px;
+    animation: fadeIn 0.4s ease;
+  }
+  .check-item.pass { background: var(--pass); border: 1px solid rgba(46,204,113,0.3); }
+  .check-item.fail { background: var(--fail); border: 1px solid rgba(231,76,60,0.3); }
+  .check-item.warn { background: var(--warn); border: 1px solid rgba(232,160,32,0.4); }
+  .check-item.na { background: rgba(255,255,255,0.03); border: 1px solid var(--border); }
+
+  .check-header { display: flex; align-items: center; justify-content: space-between; }
+  .check-name { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+  .check-name.pass { color: var(--green); }
+  .check-name.fail { color: var(--red); }
+  .check-name.warn { color: var(--accent); }
+  .check-name.na { color: var(--text2); }
+
+  .check-badge {
+    font-size: 9px; font-family: 'DM Mono', monospace;
+    padding: 2px 6px; border-radius: 2px; font-weight: 700;
+  }
+  .check-badge.pass { background: rgba(46,204,113,0.2); color: var(--green); }
+  .check-badge.fail { background: rgba(231,76,60,0.2); color: var(--red); }
+  .check-badge.warn { background: rgba(232,160,32,0.2); color: var(--accent); }
+  .check-badge.na { background: rgba(122,143,174,0.1); color: var(--text2); }
+
+  .check-values { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2); }
+  .check-clause { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; }
+
+  /* Utilization bar */
+  .util-bar-wrap { margin-top: 6px; }
+  .util-bar-bg {
+    height: 4px; background: rgba(255,255,255,0.08);
+    border-radius: 2px; overflow: hidden;
+  }
+  .util-bar-fill {
+    height: 100%; border-radius: 2px;
+    transition: width 0.6s ease;
+  }
+  .util-bar-fill.pass { background: var(--green); }
+  .util-bar-fill.fail { background: var(--red); }
+  .util-bar-fill.warn { background: var(--accent); }
+
+  /* Load summary */
+  .load-summary {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px;
+    margin-bottom: 20px;
+    animation: fadeIn 0.4s ease;
+  }
+  .load-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 12px; }
+  .load-item { text-align: center; }
+  .load-val { font-size: 20px; font-weight: 700; font-family: 'DM Mono', monospace; color: var(--white); }
+  .load-lbl { font-size: 10px; color: var(--text2); margin-top: 2px; letter-spacing: 1px; }
+
+  /* Section diagram */
+  .section-diagram {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px;
+    margin-bottom: 20px;
+    animation: fadeIn 0.4s ease;
+  }
+
+  canvas#sectionCanvas {
+    width: 100%; max-width: 600px;
+    display: block; margin: 12px auto 0;
+    border-radius: 4px;
+    background: var(--bg3);
+  }
+
+  /* Calculation trace */
+  .calc-trace {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 6px; overflow: hidden;
+    margin-bottom: 20px;
+    animation: fadeIn 0.4s ease;
+  }
+  .calc-trace-header {
+    padding: 10px 14px;
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid var(--border);
+    font-size: 10px; font-family: 'DM Mono', monospace;
+    letter-spacing: 2px; color: var(--text2);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .toggle-trace {
+    cursor: pointer; font-size: 10px; color: var(--accent);
+    background: none; border: none; font-family: 'DM Mono', monospace;
+    letter-spacing: 1px;
+  }
+  .calc-trace-body {
+    padding: 14px; display: none;
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    line-height: 1.8; color: var(--text2);
+  }
+  .calc-trace-body.show { display: block; }
+  .trace-line { display: flex; gap: 12px; padding: 2px 0; }
+  .trace-eq { color: var(--text); flex: 1; }
+  .trace-clause { color: var(--text3); font-size: 10px; white-space: nowrap; }
+  .trace-section { color: var(--accent); font-size: 10px; margin: 8px 0 4px; font-weight: 700; }
+
+  /* Responsive */
+  @media (max-width: 1100px) {
+    .main-layout { grid-template-columns: 1fr; }
+    .input-panel, .results-panel { max-height: none; }
+    .results-grid { grid-template-columns: 1fr; }
+    .checks-grid { grid-template-columns: 1fr; }
+    .load-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  .divider { height: 1px; background: var(--border); margin: 18px 0; }
+
+  /* Tooltip */
+  .tip {
+    display: inline-block; width: 14px; height: 14px;
+    background: rgba(58,123,213,0.3); border-radius: 50%;
+    font-size: 9px; text-align: center; line-height: 14px;
+    color: #7ab4ff; cursor: help; margin-left: 4px;
+    vertical-align: middle;
+  }
+
+  .input-number-wrap { position: relative; }
+  .input-unit-tag {
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace;
+    pointer-events: none;
+  }
+  .input-number-wrap .form-control { padding-right: 40px; }
+
+  select.form-control {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237a8fae'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 30px;
+  }
+
+  .profile-info-bar {
+    padding: 10px 12px; border-radius: 4px;
+    background: rgba(58,123,213,0.08); border: 1px solid rgba(58,123,213,0.25);
+    font-size: 11px; color: #7ab4ff;
+    font-family: 'DM Mono', monospace; line-height: 1.6;
+    margin-top: 8px; display: none;
+  }
+  .profile-info-bar.show { display: block; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-main">IBS <span>STRUCTURAL</span> DESIGN SUITE</div>
+      <div class="logo-sub">Integrated Building Services — Composite Deck Slab Module</div>
+    </div>
+    <div class="header-badge">
+      <span class="badge badge-code">IS 11384:2022</span>
+      <span class="badge badge-code">IS 456:2000</span>
+      <span class="badge badge-firm">IBS v2.0</span>
+    </div>
+  </div>
+</header>
+
+<div class="container" style="max-width:100%;padding:0;">
+<div class="main-layout">
+
+  <!-- INPUT PANEL -->
+  <div class="input-panel">
+
+    <div class="form-section">
+      <div class="section-title">01 — Deck Profile Selection</div>
+      <div class="profile-grid" id="profileGrid">
+        <div class="profile-card active" data-profile="TR50" onclick="selectProfile('TR50',this)">
+          <div class="pname">TR50</div>
+          <div class="pdesc">50mm deep<br>bb=135, tt=200mm</div>
+          <span class="ptag tag-noncomposite">PERM. SHUTTER</span>
+        </div>
+        <div class="profile-card" data-profile="TR60" onclick="selectProfile('TR60',this)">
+          <div class="pname">TR60+</div>
+          <div class="pdesc">60mm deep<br>bb=133, tt=200mm</div>
+          <span class="ptag tag-composite">COMPOSITE</span>
+        </div>
+        <div class="profile-card" data-profile="TR80" onclick="selectProfile('TR80',this)">
+          <div class="pname">TR80+</div>
+          <div class="pdesc">80mm deep<br>bb=122, tt=200mm</div>
+          <span class="ptag tag-composite">COMPOSITE</span>
+        </div>
+      </div>
+      <div class="warning-box show" id="tr50Warning">
+        ⚠ TR50 is a NON-COMPOSITE permanent shuttering profile (per JSW SMDJSW-STA-1001 V4). Design is based on reinforced concrete slab only — deck sheet acts as formwork. No composite action assumed per IS 11384:2022 Cl. 9.1.3(c).
+      </div>
+      <div class="profile-info-bar" id="profileInfoBar"></div>
+
+      <div class="form-group">
+        <label class="form-label">Gauge / Thickness <span class="unit">(mm nominal)</span></label>
+        <select class="form-control" id="gaugeSelect" onchange="updateGaugeInfo()">
+          <option value="0.7">0.7 mm</option>
+          <option value="0.8">0.8 mm</option>
+          <option value="0.9">0.9 mm</option>
+          <option value="1.0" selected>1.0 mm</option>
+          <option value="1.2">1.2 mm</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Steel Grade</label>
+        <select class="form-control" id="steelGrade" onchange="updateGaugeInfo()">
+          <option value="250">S250 — fyp = 250 N/mm²</option>
+          <option value="350" selected>S350 — fyp = 350 N/mm²</option>
+          <option value="450">S450 — fyp = 450 N/mm²</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="section-title">02 — Geometry</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Span c/c <span class="unit">(mm)</span></label>
+          <div class="input-number-wrap">
+            <input type="number" class="form-control" id="span" value="2400" min="500" max="5000" step="50">
+            <span class="input-unit-tag">mm</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Slab above deck ds <span class="unit">(mm)</span></label>
+          <div class="input-number-wrap">
+            <input type="number" class="form-control" id="ds" value="75" min="40" max="300" step="5">
+            <span class="input-unit-tag">mm</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Span Condition</label>
+        <div class="radio-group" id="spanCondition">
+          <label class="radio-btn active" onclick="setRadio('spanCondition',this,'single')">Single</label>
+          <label class="radio-btn" onclick="setRadio('spanCondition',this,'double')">Double</label>
+          <label class="radio-btn" onclick="setRadio('spanCondition',this,'multiple')">Multiple</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Construction Method</label>
+        <div class="radio-group" id="constructionMethod">
+          <label class="radio-btn active" onclick="setRadio('constructionMethod',this,'unpropped')">Un-propped</label>
+          <label class="radio-btn" onclick="setRadio('constructionMethod',this,'propped')">Propped</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="section-title">03 — Material Grades</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Concrete fck <span class="unit">(MPa)</span></label>
+          <select class="form-control" id="fck">
+            <option value="20" selected>M20</option>
+            <option value="25">M25</option>
+            <option value="30">M30</option>
+            <option value="35">M35</option>
+            <option value="40">M40</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rebar fyk <span class="unit">(MPa)</span></label>
+          <select class="form-control" id="fyk">
+            <option value="250">Fe250</option>
+            <option value="415">Fe415</option>
+            <option value="500" selected>Fe500</option>
+            <option value="550">Fe550</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Negative Moment Steel Ast <span class="unit">(mm²/m)</span></label>
+        <div class="input-number-wrap">
+          <input type="number" class="form-control" id="ast" value="251" min="0" max="3000" step="1">
+          <span class="input-unit-tag">mm²/m</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="section-title">04 — Loading</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Imposed Load <span class="unit">(kN/m²)</span></label>
+          <div class="input-number-wrap">
+            <input type="number" class="form-control" id="liveLoad" value="3.5" min="0.5" max="20" step="0.25">
+            <span class="input-unit-tag">kN/m²</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Superimposed DL <span class="unit">(kN/m²)</span></label>
+          <div class="input-number-wrap">
+            <input type="number" class="form-control" id="sdl" value="1.5" min="0" max="10" step="0.25">
+            <span class="input-unit-tag">kN/m²</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Construction Live Load <span class="unit">(kN/m²)</span></label>
+        <div class="input-number-wrap">
+          <input type="number" class="form-control" id="constLL" value="0.75" min="0.5" max="3.0" step="0.25">
+          <span class="input-unit-tag">kN/m²</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="section-title">05 — Deflection Limits</div>
+      <div class="form-group">
+        <label class="form-label">Deflection Limit Type</label>
+        <select class="form-control" id="deflLimitType" onchange="updateDeflFields()">
+          <option value="span_ratio">Span / N ratio</option>
+          <option value="absolute">Absolute (mm)</option>
+          <option value="combined">Combined (lesser of both)</option>
+        </select>
+      </div>
+      <div class="form-row" id="deflRow1">
+        <div class="form-group">
+          <label class="form-label">Construction Stage — Span/N</label>
+          <div class="input-number-wrap">
+            <input type="number" class="form-control" id="deflConstrN" value="130" min="50" max="500">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Service Stage — Span/N</label>
+          <div class="input-number-wrap">
+            <input type="number" class="form-control" id="deflServiceN" value="350" min="100" max="1000">
+          </div>
+        </div>
+      </div>
+      <div class="form-row" id="deflRow2" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">Construction — max (mm)</label>
+          <div class="input-number-wrap">
+            <input type="number" class="form-control" id="deflConstrAbs" value="20" min="5" max="100">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Service — max (mm)</label>
+          <div class="input-number-wrap">
+            <input type="number" class="form-control" id="deflServiceAbs" value="20" min="5" max="100">
+          </div>
+        </div>
+      </div>
+      <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:4px;">
+        Ref: IS 11384:2022 Cl.12.6.2 | IS 456:2000 | IS 800:2007 Table 6
+      </div>
+    </div>
+
+    <button class="calc-btn" onclick="calculate()">▶ &nbsp;RUN DESIGN CHECK</button>
+    <button class="reset-btn" onclick="resetForm()">↺ &nbsp;RESET INPUTS</button>
+  </div>
+
+  <!-- RESULTS PANEL -->
+  <div class="results-panel" id="resultsPanel">
+    <div class="results-placeholder" id="resultsPlaceholder">
+      <div class="icon">⬡</div>
+      <p>Configure inputs and run design check</p>
+    </div>
+    <div id="resultsContent" style="display:none;">
+      <!-- populated by JS -->
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────
+let selectedProfile = 'TR50';
+let radioState = { spanCondition: 'single', constructionMethod: 'unpropped' };
+
+// ─── DECK DATABASE (from JSW catalogs, verified) ──────────────────
+const DECK = {
+  TR50: {
+    name: 'TR50', dp: 50, bb: 135, tt: 200, composite: false,
+    maxSpan: 3.0,
+    gauges: {
+      '0.7': { tp: 0.66, Ap: 848,  Ix: 26200  },  // Ix in mm⁴/m = cm⁴/m × 10^4
+      '0.8': { tp: 0.76, Ap: 976,  Ix: 31100  },
+      '0.9': { tp: 0.86, Ap: 1104, Ix: 36900  },
+      '1.0': { tp: 0.96, Ap: 1233, Ix: 42300  },
+      '1.2': { tp: 1.16, Ap: 1490, Ix: 55400  },
+    },
+    grades: [250, 350, 550],
+    // Concrete volume m³/m² above deck at various total depths (from catalog)
+    concreteVol: (dsp) => {
+      // TR50: cover width 950mm, ribs area = 0.5*(135+200)/2 * 50 * (1000/200) = area of trapezoidal ribs per m
+      // From catalog table: volume at ds_total
+      // Using formula: Ac = (dsp - dp) + rib contribution
+      // Trough: 2 troughs per 200mm pitch, each trough approx triangular
+      // catalog shows 0.076 at 100mm, 0.126 at 150mm → rate ≈ 1.0 mm depth → 0.001 m³/m²
+      // More precisely from catalog: V = 0.016*1000 + (dsp-50)*1.0/1000 m³/m²
+      // Fitted from catalog: V ≈ 0.016 + (dsp-50)*0.001 where dsp in mm
+      return 0.016 + (dsp - 50) * 0.001;
+    }
+  },
+  TR60: {
+    name: 'TR60+', dp: 60, bb: 133, tt: 200, composite: true,
+    maxSpan: 3.6,
+    gauges: {
+      '0.9': { tp: 0.86, Ap: 1216, Ix_S350: 93500,  Ix_S450: 91100  },
+      '1.0': { tp: 0.96, Ap: 1355, Ix_S350: 102100, Ix_S450: 103200 },
+      '1.2': { tp: 1.16, Ap: 1633, Ix_S350: 119800, Ix_S450: 128200 },
+    },
+    grades: [350, 450],
+    concreteVol: (dsp) => {
+      // TR60+: 666mm cover, from catalog
+      // At 120mm: 0.086, 130mm: 0.096 → Δ = 0.010 per 10mm = 0.001/mm
+      return 0.086 + (dsp - 120) * 0.001;
+    }
+  },
+  TR80: {
+    name: 'TR80+', dp: 80, bb: 122, tt: 200, composite: true,
+    maxSpan: 4.5,
+    gauges: {
+      '0.9': { tp: 0.86, Ap: 1385, Ix_S350: 172900, Ix_S450: 175200 },
+      '1.0': { tp: 0.96, Ap: 1539, Ix_S350: 192300, Ix_S450: 190300 },
+      '1.2': { tp: 1.16, Ap: 1860, Ix_S350: 231100, Ix_S450: 220100 },
+    },
+    grades: [350, 450],
+    concreteVol: (dsp) => {
+      // TR80+: 600mm cover
+      // At 140mm: 0.096, 160mm: 0.116 → 0.001/mm
+      return 0.096 + (dsp - 140) * 0.001;
+    }
+  }
+};
+
+// IS 11384:2022 partial safety factors (Table 7)
+const γm0 = 1.10;  // structural steel & deck
+const γc  = 1.50;  // concrete
+const γk  = 1.15;  // reinforcement
+const γf  = 1.50;  // load factor for ULS (DL+LL per Table 6)
+const Es  = 200000; // MPa (IS 11384 Cl.5.2.1)
+
+// ─── UI HELPERS ──────────────────────────────────────────────────
+function selectProfile(p, el) {
+  selectedProfile = p;
+  document.querySelectorAll('.profile-card').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+
+  const warn = document.getElementById('tr50Warning');
+  warn.classList.toggle('show', p === 'TR50');
+
+  // Update gauge options
+  const gaugeSelect = document.getElementById('gaugeSelect');
+  const gradeSelect = document.getElementById('steelGrade');
+  const deck = DECK[p];
+
+  const availGauges = Object.keys(deck.gauges);
+  Array.from(gaugeSelect.options).forEach(o => {
+    o.disabled = !availGauges.includes(o.value);
+  });
+  if (!availGauges.includes(gaugeSelect.value)) {
+    gaugeSelect.value = availGauges[availGauges.length - 1];
+  }
+
+  // Steel grade options
+  Array.from(gradeSelect.options).forEach(o => {
+    const v = parseInt(o.value);
+    o.disabled = !deck.grades.includes(v);
+  });
+  if (!deck.grades.includes(parseInt(gradeSelect.value))) {
+    gradeSelect.value = deck.grades[0];
+  }
+
+  updateGaugeInfo();
+}
+
+function updateGaugeInfo() {
+  const p = selectedProfile;
+  const deck = DECK[p];
+  const g = document.getElementById('gaugeSelect').value;
+  const gr = document.getElementById('steelGrade').value;
+  const gdata = deck.gauges[g];
+  if (!gdata) return;
+  const bar = document.getElementById('profileInfoBar');
+  let Ix = gdata.Ix || (gr === '450' ? gdata.Ix_S450 : gdata.Ix_S350);
+  bar.innerHTML = `PROFILE: ${deck.name} | GAUGE: ${g}mm (design tp = ${gdata.tp}mm) | Ap = ${gdata.Ap} mm²/m | Ix = ${(Ix/10000).toFixed(1)} cm⁴/m | dp = ${deck.dp}mm`;
+  bar.classList.add('show');
+}
+
+function setRadio(group, el, val) {
+  document.querySelectorAll(`#${group} .radio-btn`).forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  radioState[group] = val;
+}
+
+function updateDeflFields() {
+  const type = document.getElementById('deflLimitType').value;
+  const r1 = document.getElementById('deflRow1');
+  const r2 = document.getElementById('deflRow2');
+  if (type === 'span_ratio') { r1.style.display = ''; r2.style.display = 'none'; }
+  else if (type === 'absolute') { r1.style.display = 'none'; r2.style.display = ''; }
+  else { r1.style.display = ''; r2.style.display = ''; }
+}
+
+function resetForm() {
+  document.getElementById('span').value = 2400;
+  document.getElementById('ds').value = 75;
+  document.getElementById('ast').value = 251;
+  document.getElementById('liveLoad').value = 3.5;
+  document.getElementById('sdl').value = 1.5;
+  document.getElementById('constLL').value = 0.75;
+  document.getElementById('deflServiceN').value = 350;
+  document.getElementById('deflConstrN').value = 130;
+  document.getElementById('fck').value = 20;
+  document.getElementById('fyk').value = 500;
+  document.getElementById('resultsContent').style.display = 'none';
+  document.getElementById('resultsPlaceholder').style.display = 'flex';
+}
+
+// ─── MAIN CALCULATION ─────────────────────────────────────────────
+function calculate() {
+  const p     = selectedProfile;
+  const deck  = DECK[p];
+  const g     = document.getElementById('gaugeSelect').value;
+  const gr    = parseInt(document.getElementById('steelGrade').value);
+  const gdata = deck.gauges[g];
+  if (!gdata) { alert('Selected gauge not available for this profile.'); return; }
+
+  const span  = parseFloat(document.getElementById('span').value);       // mm
+  const ds    = parseFloat(document.getElementById('ds').value);         // mm, slab above deck
+  const fck   = parseFloat(document.getElementById('fck').value);        // MPa
+  const fyk   = parseFloat(document.getElementById('fyk').value);        // MPa rebar
+  const fyp   = gr;                                                        // MPa deck
+  const Ast   = parseFloat(document.getElementById('ast').value);        // mm²/m
+  const LL    = parseFloat(document.getElementById('liveLoad').value);   // kN/m²
+  const SDL   = parseFloat(document.getElementById('sdl').value);        // kN/m²
+  const CLL   = parseFloat(document.getElementById('constLL').value);    // kN/m²
+  const constrMethod = radioState.constructionMethod;
+
+  // Deflection limits
+  const deflType = document.getElementById('deflLimitType').value;
+  const deflConstrN   = parseFloat(document.getElementById('deflConstrN').value)   || 130;
+  const deflServiceN  = parseFloat(document.getElementById('deflServiceN').value)  || 350;
+  const deflConstrAbs = parseFloat(document.getElementById('deflConstrAbs').value) || 20;
+  const deflServiceAbs= parseFloat(document.getElementById('deflServiceAbs').value)|| 20;
+
+  // ── Profile properties
+  const dp  = deck.dp;       // mm depth of profile
+  const bb  = deck.bb;       // mm bottom width
+  const tt  = deck.tt;       // mm pitch (top width)
+  const tp  = gdata.tp;      // mm design thickness (bare steel)
+  const Ap  = gdata.Ap;      // mm²/m area of steel
+  const Ix  = gdata.Ix || (gr === 450 ? gdata.Ix_S450 : gdata.Ix_S350); // mm⁴/m
+  const bp  = 1000;          // per 1m width
+  const span_m = span / 1000;
+
+  // ── Section depths
+  const dsp = ds + dp;       // total slab depth mm
+  const d   = ds + dp / 2;   // centroid of deck to top of slab (lever arm basis)
+  const e   = dp / 2;        // CG of deck from extreme tension fibre
+
+  // ── Concrete properties (IS 11384:2022 Annex F)
+  const Ecm_vals = {20:28608, 25:29962, 30:31187, 35:32308, 40:33346, 45:34313, 50:35220};
+  const Ecm = Ecm_vals[fck] || 28608;
+  const m   = Es / Ecm;       // modular ratio
+
+  // ── Concrete volume / weight (from catalog-derived formula)
+  const Ac_rib = deck.concreteVol(dsp); // m³/m² (volume including rib zones)
+  const ρc = 25;              // kN/m³ concrete density IS 11384 (25 kN/m³)
+  const w_conc = Ac_rib * ρc; // kN/m²
+
+  // ── LOADS
+  // Construction stage (deck acts alone)
+  const w_deck = gdata.Ap * 7850e-9 * 9.81; // kN/m² (rough, negligible)
+  const w_selfwt = gdata.Ap > 1000 ? 0.13 : 0.10; // kN/m² deck sheet wt from catalog
+  const w_DL_constr = w_conc + w_selfwt;    // kN/m² construction dead load
+  const w_LL_constr = CLL;                   // kN/m² construction live load
+
+  // Service stage (composite or RC)
+  const w_DL_service = w_DL_constr + SDL;   // kN/m²
+  const w_LL_service = LL;                   // kN/m²
+  const w_total_service = w_DL_service + w_LL_service;
+
+  // Factored loads (ULS)
+  const Wu_constr  = γf * (w_DL_constr + w_LL_constr); // kN/m² factored construction
+  const Wu_service = γf * w_total_service;               // kN/m² factored service
+
+  // Bending moments (per m width)
+  const span_coeff = radioState.spanCondition === 'single' ? 1.0
+                   : radioState.spanCondition === 'double'  ? 0.85
+                   : 0.8; // IS 11384 Cl.12.4.1(b)
+
+  const Le = span_m * span_coeff; // effective span m
+
+  const Md_constr  = Wu_constr  * Le * Le / 8.0 * 1e6; // N·mm/m
+  const Md_service = Wu_service * Le * Le / 8.0 * 1e6; // N·mm/m
+
+  // ── TRACE
+  const trace = [];
+
+  // ── Elastic modulus of concrete
+  trace.push({ sec: 'MATERIAL PROPERTIES' });
+  trace.push({ eq: `Ecm = ${Ecm} MPa (IS 11384:2022 Annex F, M${fck})`, clause: 'Annex F' });
+  trace.push({ eq: `m = Es/Ecm = ${Es}/${Ecm} = ${m.toFixed(2)}`, clause: 'Cl.9.3' });
+  trace.push({ eq: `Slab above deck ds = ${ds}mm, Total dsp = ${dsp}mm`, clause: '' });
+  trace.push({ eq: `Concrete self-weight = ${w_conc.toFixed(2)} kN/m²`, clause: '' });
+
+  trace.push({ sec: 'FACTORED LOADS (ULS)' });
+  trace.push({ eq: `Wu,construction = ${γf} × (${w_DL_constr.toFixed(2)} + ${CLL}) = ${Wu_constr.toFixed(3)} kN/m²`, clause: 'Table 6' });
+  trace.push({ eq: `Wu,service = ${γf} × ${w_total_service.toFixed(2)} = ${Wu_service.toFixed(3)} kN/m²`, clause: 'Table 6' });
+  trace.push({ eq: `Le = ${span_m.toFixed(3)} × ${span_coeff} = ${Le.toFixed(3)} m (${radioState.spanCondition} span)`, clause: 'Cl.12.4.1' });
+  trace.push({ eq: `Mud,const = ${Wu_constr.toFixed(3)} × ${Le.toFixed(3)}² / 8 = ${(Md_constr/1e6).toFixed(3)} kN·m/m`, clause: '' });
+  trace.push({ eq: `Mud,service = ${Wu_service.toFixed(3)} × ${Le.toFixed(3)}² / 8 = ${(Md_service/1e6).toFixed(3)} kN·m/m`, clause: '' });
+
+  // ─────────────────────────────────────────────────────────
+  // DESIGN PATH SPLIT: TR50 = non-composite RC, TR60/TR80 = composite
+  // ─────────────────────────────────────────────────────────
+  let results = {};
+
+  if (!deck.composite) {
+    // ── TR50: NON-COMPOSITE — RC slab design only
+    // Deck sheet = permanent formwork, not contributing to strength
+    // Design as RC slab per IS 456:2000
+
+    trace.push({ sec: 'NON-COMPOSITE DESIGN (IS 456:2000)' });
+    trace.push({ eq: '⚠ TR50 is non-composite. RC slab design only.', clause: 'IS 11384 Cl.9.1.3(c)' });
+
+    const d_eff = dsp - 30 - 8; // effective depth assuming 30mm cover + 8mm bar
+    const Mu_lim = 0.138 * fck * bp * d_eff * d_eff; // N·mm/m (IS 456, Fe500 limit)
+
+    // Ast required
+    const Ast_req = (fck * bp * d_eff / (2 * fyk)) * (1 - Math.sqrt(1 - 4 * 1.5 * Md_service / (fck * bp * d_eff * d_eff)));
+    const Ast_min = 0.0012 * bp * dsp; // IS 456 Cl.26.5.2
+    const Ast_prov = Math.max(Ast_req, Ast_min, Ast);
+
+    // Deflection — pure RC slab
+    const Ie = bp * dsp * dsp * dsp / 12; // gross section Ie mm⁴/m
+    const defl_constr = 5 * (w_DL_constr + CLL) * 1e-3 * span_m * (span * span * span) / (384 * Es * Ix);
+    // Service deflection using uncracked composite Ie is not applicable for TR50 RC
+    // Use RC formula: δ = 5wL⁴/384EcmI
+    const defl_service = 5 * w_LL_service * 1e-3 * span_m * span * span * span / (384 * Ecm * Ie);
+
+    const defl_lim_constr  = deflType === 'absolute' ? deflConstrAbs  : (deflType === 'combined' ? Math.min(span/deflConstrN, deflConstrAbs)  : span/deflConstrN);
+    const defl_lim_service = deflType === 'absolute' ? deflServiceAbs : (deflType === 'combined' ? Math.min(span/deflServiceN, deflServiceAbs) : span/deflServiceN);
+
+    trace.push({ eq: `d_eff = ${dsp} - 30 - 8 = ${d_eff}mm`, clause: 'IS 456 Cl.26.1' });
+    trace.push({ eq: `Ast,req = ${Ast_req.toFixed(0)} mm²/m`, clause: 'IS 456' });
+    trace.push({ eq: `Ast,min = ${Ast_min.toFixed(0)} mm²/m (0.12% of bD)`, clause: 'IS 456 Cl.26.5.2' });
+    trace.push({ eq: `Ast,provided = ${Ast_prov.toFixed(0)} mm²/m`, clause: '' });
+
+    const moment_ok = Md_service < Mu_lim;
+    const defl_constr_ok = defl_constr <= defl_lim_constr;
+    const defl_service_ok = defl_service <= defl_lim_service;
+
+    results = {
+      type: 'non-composite',
+      profile: deck.name, gauge: g, grade: `S${gr}`,
+      fck, fyk: parseInt(fyk), fyp,
+      span, ds, dsp, dp, Ap, Ix,
+      w_DL: w_DL_service, w_LL: w_LL_service, w_total: w_total_service,
+      Wu_service, Md_service: Md_service/1e6,
+      Mu_lim: Mu_lim/1e6,
+      d_eff, Ast_req, Ast_min, Ast_prov,
+      defl_constr, defl_service,
+      defl_lim_constr, defl_lim_service,
+      moment_ok, defl_constr_ok, defl_service_ok,
+      overall: moment_ok && defl_constr_ok && defl_service_ok,
+      span_m, Le, Md_constr: Md_constr/1e6,
+      Wu_constr, w_conc, constrMethod,
+      Ecm, m, w_selfwt, SDL
+    };
+
+  } else {
+    // ── TR60/TR80: COMPOSITE — IS 11384:2022 Annex C
+    trace.push({ sec: 'COMPOSITE SLAB DESIGN (IS 11384:2022 Annex C)' });
+
+    // Construction stage: deck sheet alone carries loads (unpropped)
+    // Section modulus of deck sheet
+    const Zp = 2 * Ix / dp; // mm³/m (elastic section modulus, simplified as 2I/d)
+    const Mc_constr = Md_constr; // N·mm/m
+
+    // Deck sheet bending capacity at construction stage (IS 11384 Cl.12.4.2 / IS 801)
+    const Mdp_constr = Ap * fyp / γm0 * (dp / 2 - 0.42 * (Ap * fyp / γm0) / (0.36 * fck * bp));
+    // Simplified: plastic moment of deck sheet
+    const Mdp = Ap * fyp / γm0 * e; // N·mm/m (conservatively)
+
+    const stress_constr = Mc_constr / Zp;
+
+    trace.push({ eq: `Zp (deck elastic SM) = 2×Ix/dp = 2×${Ix}/${dp} = ${Zp.toFixed(0)} mm³/m`, clause: '' });
+    trace.push({ eq: `σ,constr = Mu,constr/Zp = ${(Mc_constr/1e6).toFixed(3)}×10⁶/${Zp.toFixed(0)} = ${stress_constr.toFixed(2)} MPa`, clause: 'Cl.12.4.2' });
+    trace.push({ eq: `Allowable σ = fyp/γm0 = ${fyp}/${γm0} = ${(fyp/γm0).toFixed(1)} MPa`, clause: '' });
+
+    // ── Composite section: IS 11384 Annex C, Table 22
+    // Neutral axis location: check if xu ≤ ds (NA above sheeting)
+    const Xus = Ap * fyp / (γm0 * 0.36 * fck * bp); // neutral axis depth mm
+    trace.push({ sec: 'COMPOSITE BENDING RESISTANCE (Annex C, Table 22)' });
+    trace.push({ eq: `xu = Ap·fyp/(γm0·0.36·fck·bp) = ${Ap}×${fyp}/(${γm0}×0.36×${fck}×${bp}) = ${Xus.toFixed(2)} mm`, clause: 'Table 22 Case 1' });
+
+    let Mdss; // sagging resistance N·mm/m
+    let naCase = '';
+    if (Xus <= ds) {
+      // Case 1: NA above sheeting
+      Mdss = (Ap * fyp / γm0) * (d - 0.42 * Xus);
+      naCase = 'NA above sheeting (Case 1)';
+      trace.push({ eq: `xu = ${Xus.toFixed(2)} mm ≤ ds = ${ds}mm → NA above sheeting`, clause: '' });
+      trace.push({ eq: `Mds = (Ap·fyp/γm0)·(d - 0.42·xu)`, clause: 'Table 22 Case 1' });
+      trace.push({ eq: `Mds = (${Ap}×${fyp}/${γm0})·(${d} - 0.42×${Xus.toFixed(2)}) = ${(Mdss/1e6).toFixed(3)} kN·m/m`, clause: '' });
+    } else {
+      // Case 2: NA within sheeting — use simplified
+      // Fccf = 0.36*fck*bp*ds (full concrete compression)
+      const Fccf = 0.36 * fck * bp * ds;
+      const Fsp  = Ap * fyp / γm0;
+      const ep   = d - Xus + dsp; // approx plastic NA within steel
+      // Mdr = 1.25 * Mdp * (1 - Fccf/Fsp) < Mdp
+      const Mdr = Math.min(1.25 * Mdp * (1 - Fccf / Fsp), Mdp);
+      const z   = dsp - 0.42 * ds - e + (Xus - e) * Fccf / Fsp;
+      Mdss = Fccf * z + Math.max(0, Mdr);
+      naCase = 'NA within sheeting (Case 2)';
+      trace.push({ eq: `xu = ${Xus.toFixed(2)} mm > ds = ${ds}mm → NA within sheeting`, clause: '' });
+      trace.push({ eq: `Fccf = 0.36×${fck}×${bp}×${ds} = ${(Fccf/1000).toFixed(1)} kN/m`, clause: 'Table 22 Case 2' });
+      trace.push({ eq: `Mds = Fccf×z + Mdr = ${(Mdss/1e6).toFixed(3)} kN·m/m`, clause: '' });
+    }
+
+    // ── Hogging moment capacity (negative moment at support)
+    const Xuh = Ast * fyk / (γk * 0.36 * fck * bp);
+    let Mdsh;
+    if (Xuh <= ds) {
+      Mdsh = (Ast * fyk / γk) * (dsp - e - 0.42 * Xuh);
+    } else {
+      Mdsh = (Ast * fyk / γk) * (dsp - e - 0.42 * ds);
+    }
+    trace.push({ eq: `xu,hog = ${Xuh.toFixed(2)} mm`, clause: 'Annex C Table 22 Case 3' });
+    trace.push({ eq: `Mds,hog = ${(Mdsh/1e6).toFixed(3)} kN·m/m`, clause: '' });
+
+    // ── Composite section second moment of area (corrected formula)
+    // Using transformed section (steel + concrete/m)
+    const bpm = bp / m;  // transformed concrete width
+    // CG of composite section from bottom of deck:
+    const A_conc_tr = bpm * ds;   // mm²/m transformed concrete
+    const y_conc_tr = dp + ds / 2; // mm from bottom of deck
+    const y_deck    = dp / 2;      // mm from bottom of deck
+    const cg = (A_conc_tr * y_conc_tr + Ap * y_deck) / (A_conc_tr + Ap);
+
+    // Second moment of area (correctly applying parallel axis theorem with squared distances)
+    const I_slab   = bpm * ds * ds * ds / 12;  // own axis
+    const d_slab   = y_conc_tr - cg;           // distance from CG of slab to composite NA
+    const d_deck   = y_deck - cg;              // distance from CG of deck to composite NA
+
+    const Ic = Ix                            // deck own axis
+             + Ap * d_deck * d_deck           // deck parallel axis (CORRECTED: squared)
+             + I_slab                         // slab own axis
+             + A_conc_tr * d_slab * d_slab;   // slab parallel axis (CORRECTED: squared)
+
+    trace.push({ sec: 'COMPOSITE SECTION PROPERTIES (CORRECTED Ic)' });
+    trace.push({ eq: `m = ${m.toFixed(2)}, bpm = bp/m = ${bpm.toFixed(1)} mm`, clause: 'Cl.9.3' });
+    trace.push({ eq: `CG from deck bottom = ${cg.toFixed(2)} mm`, clause: '' });
+    trace.push({ eq: `d_slab = ${d_slab.toFixed(2)} mm, d_deck = ${d_deck.toFixed(2)} mm`, clause: '' });
+    trace.push({ eq: `Ic = Ix + Ap·d²_deck + I_slab + A_conc·d²_slab`, clause: 'Parallel Axis' });
+    trace.push({ eq: `Ic = ${(Ix/1e6).toFixed(2)}M + ${(Ap*d_deck*d_deck/1e6).toFixed(2)}M + ${(I_slab/1e6).toFixed(2)}M + ${(A_conc_tr*d_slab*d_slab/1e6).toFixed(2)}M = ${(Ic/1e6).toFixed(2)} ×10⁶ mm⁴/m`, clause: '' });
+
+    // ── Deflections
+    // Construction stage: deck sheet alone
+    const defl_constr = (5 * (w_DL_constr + CLL) * 1e-3 * span_m * Math.pow(span, 3)) / (384 * Es * Ix);
+    // Service stage: composite section
+    const defl_service = (5 * w_LL_service * 1e-3 * span_m * Math.pow(span, 3)) / (384 * Es * Ic);
+    const defl_total   = defl_constr + defl_service;
+
+    trace.push({ sec: 'DEFLECTION CHECKS' });
+    trace.push({ eq: `δ,constr = 5×${(w_DL_constr+CLL).toFixed(2)}×10⁻³×${span_m}×${span}³/(384×${Es}×${Ix}) = ${defl_constr.toFixed(2)} mm`, clause: 'Cl.12.4.2(a)' });
+    trace.push({ eq: `δ,service (LL only) = 5×${w_LL_service}×10⁻³×${span_m}×${span}³/(384×${Es}×${(Ic/1e6).toFixed(1)}M) = ${defl_service.toFixed(2)} mm`, clause: 'Cl.12.6.2' });
+
+    const defl_lim_constr  = deflType === 'absolute' ? deflConstrAbs  : (deflType === 'combined' ? Math.min(span/deflConstrN,  deflConstrAbs)  : span/deflConstrN);
+    const defl_lim_service = deflType === 'absolute' ? deflServiceAbs : (deflType === 'combined' ? Math.min(span/deflServiceN, deflServiceAbs) : span/deflServiceN);
+
+    trace.push({ eq: `δ,lim,constr = span/${deflConstrN} = ${defl_lim_constr.toFixed(1)} mm`, clause: 'User defined' });
+    trace.push({ eq: `δ,lim,service = span/${deflServiceN} = ${defl_lim_service.toFixed(1)} mm`, clause: 'User defined' });
+
+    // ── Checks
+    const moment_ok    = Md_service < Mdss;
+    const hogging_ok   = Md_service < Mdsh;  // simplified; continuous slab
+    const defl_constr_ok  = defl_constr  <= defl_lim_constr;
+    const defl_service_ok = defl_service <= defl_lim_service;
+    const stress_ok = stress_constr <= fyp / γm0;
+    const min_ds_ok = ds >= 50; // IS 11384 Cl.12.2.1(a): ≥50mm above ribs for composite
+    const span_ok = span_m <= deck.maxSpan;
+
+    const util_moment = Md_service / (Mdss / 1e6);
+    const util_defl_s = defl_service / defl_lim_service;
+    const util_defl_c = defl_constr  / defl_lim_constr;
+
+    results = {
+      type: 'composite',
+      profile: deck.name, gauge: g, grade: `S${gr}`,
+      fck, fyk: parseInt(fyk), fyp,
+      span, ds, dsp, dp, Ap, Ix, Ic, cg,
+      w_DL: w_DL_service, w_LL: w_LL_service, SDL,
+      w_total: w_total_service, w_conc, w_selfwt,
+      Wu_constr, Wu_service,
+      Md_constr: Md_constr/1e6, Md_service: Md_service/1e6,
+      Xus, Xuh, Mdss: Mdss/1e6, Mdsh: Mdsh/1e6,
+      naCase, stress_constr, stress_ok,
+      defl_constr, defl_service, defl_total,
+      defl_lim_constr, defl_lim_service,
+      moment_ok, hogging_ok, defl_constr_ok, defl_service_ok, min_ds_ok, span_ok,
+      util_moment, util_defl_s, util_defl_c,
+      overall: moment_ok && defl_constr_ok && defl_service_ok && stress_ok && min_ds_ok,
+      span_m, Le, Ecm, m, constrMethod,
+      deflConstrN, deflServiceN
+    };
+  }
+
+  renderResults(results, trace);
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────
+function renderResults(r, trace) {
+  const ph = document.getElementById('resultsPlaceholder');
+  const rc = document.getElementById('resultsContent');
+  ph.style.display = 'none';
+  rc.style.display = 'block';
+
+  let html = '';
+
+  // Overall status
+  html += `<div class="overall-status ${r.overall ? 'pass' : 'fail'}">
+    <div class="status-icon">${r.overall ? '✅' : '❌'}</div>
+    <div>
+      <div class="status-title ${r.overall ? 'pass' : 'fail'}">${r.overall ? 'DESIGN ADEQUATE' : 'DESIGN INADEQUATE'}</div>
+      <div class="status-sub">${r.profile} · ${r.gauge}mm · S${r.fyp} · M${r.fck} · Span ${r.span}mm · ${r.type === 'composite' ? 'Composite IS 11384:2022' : 'Non-Composite IS 456:2000'}</div>
+    </div>
+  </div>`;
+
+  // Load summary
+  html += `<div class="load-summary">
+    <div class="section-title" style="margin-bottom:0;padding-bottom:8px;">Load Summary</div>
+    <div class="load-grid">
+      <div class="load-item">
+        <div class="load-val">${r.w_conc.toFixed(2)}</div>
+        <div class="load-lbl">SLAB S/W (kN/m²)</div>
+      </div>
+      <div class="load-item">
+        <div class="load-val">${r.w_DL.toFixed(2)}</div>
+        <div class="load-lbl">TOTAL DL (kN/m²)</div>
+      </div>
+      <div class="load-item">
+        <div class="load-val">${r.w_LL.toFixed(2)}</div>
+        <div class="load-lbl">LIVE LOAD (kN/m²)</div>
+      </div>
+      <div class="load-item">
+        <div class="load-val" style="color:var(--accent)">${r.w_total.toFixed(2)}</div>
+        <div class="load-lbl">TOTAL SERVICE (kN/m²)</div>
+      </div>
+    </div>
+  </div>`;
+
+  // Section diagram
+  html += `<div class="section-diagram">
+    <div class="section-title" style="margin-bottom:0;padding-bottom:8px;">Cross-Section</div>
+    <canvas id="sectionCanvas" height="160"></canvas>
+  </div>`;
+
+  // Results cards
+  html += `<div class="results-grid">`;
+
+  // Card 1: Geometry
+  html += `<div class="result-card">
+    <div class="result-card-header">Profile & Geometry</div>
+    <div class="result-card-body">
+      <div class="result-row"><span class="result-label">Profile</span><span class="result-value">${r.profile} — ${r.gauge}mm (S${r.fyp})</span></div>
+      <div class="result-row"><span class="result-label">Deck depth dp</span><span class="result-value">${r.dp}<span class="unit">mm</span></span></div>
+      <div class="result-row"><span class="result-label">Slab above deck ds</span><span class="result-value">${r.ds}<span class="unit">mm</span></span></div>
+      <div class="result-row"><span class="result-label">Total slab depth dsp</span><span class="result-value">${r.dsp}<span class="unit">mm</span></span></div>
+      <div class="result-row"><span class="result-label">Effective span Le</span><span class="result-value">${(r.Le*1000).toFixed(0)}<span class="unit">mm</span></span></div>
+      <div class="result-row"><span class="result-label">Area of steel Ap</span><span class="result-value">${r.Ap}<span class="unit">mm²/m</span></span></div>
+      <div class="result-row"><span class="result-label">Ix (deck alone)</span><span class="result-value">${(r.Ix/10000).toFixed(1)}<span class="unit">cm⁴/m</span></span></div>
+      ${r.type === 'composite' ? `<div class="result-row"><span class="result-label">Ic (composite)</span><span class="result-value">${(r.Ic/10000).toFixed(0)}<span class="unit">cm⁴/m</span></span></div>` : ''}
+      ${r.type === 'composite' ? `<div class="result-row"><span class="result-label">m (modular ratio)</span><span class="result-value">${r.m.toFixed(2)}</span></div>` : ''}
+    </div>
+  </div>`;
+
+  // Card 2: Moments
+  if (r.type === 'composite') {
+    html += `<div class="result-card">
+      <div class="result-card-header">Bending Resistance</div>
+      <div class="result-card-body">
+        <div class="result-row"><span class="result-label">Mud,construction</span><span class="result-value">${r.Md_constr.toFixed(3)}<span class="unit">kN·m/m</span></span></div>
+        <div class="result-row"><span class="result-label">Mud,service (factored)</span><span class="result-value" style="color:var(--accent)">${r.Md_service.toFixed(3)}<span class="unit">kN·m/m</span></span></div>
+        <div class="result-row"><span class="result-label">xu (sagging NA)</span><span class="result-value">${r.Xus.toFixed(2)}<span class="unit">mm</span></span></div>
+        <div class="result-row"><span class="result-label">NA Position</span><span class="result-value" style="font-size:11px">${r.naCase}</span></div>
+        <div class="result-row"><span class="result-label">Mds,sagging ★</span><span class="result-value" style="color:var(--green)">${r.Mdss.toFixed(3)}<span class="unit">kN·m/m</span></span></div>
+        <div class="result-row"><span class="result-label">Utilization</span><span class="result-value" style="color:${r.util_moment <= 1 ? 'var(--green)' : 'var(--red)'}">${(r.util_moment*100).toFixed(1)}%</span></div>
+        <div class="result-row"><span class="result-label">xu,hog (hogging)</span><span class="result-value">${r.Xuh.toFixed(2)}<span class="unit">mm</span></span></div>
+        <div class="result-row"><span class="result-label">Mds,hogging</span><span class="result-value">${r.Mdsh.toFixed(3)}<span class="unit">kN·m/m</span></span></div>
+      </div>
+    </div>`;
+  } else {
+    html += `<div class="result-card">
+      <div class="result-card-header">RC Slab Design (IS 456)</div>
+      <div class="result-card-body">
+        <div class="result-row"><span class="result-label">Mud,service</span><span class="result-value" style="color:var(--accent)">${r.Md_service.toFixed(3)}<span class="unit">kN·m/m</span></span></div>
+        <div class="result-row"><span class="result-label">Mu,lim (RC)</span><span class="result-value" style="color:var(--green)">${r.Mu_lim.toFixed(3)}<span class="unit">kN·m/m</span></span></div>
+        <div class="result-row"><span class="result-label">d_eff</span><span class="result-value">${r.d_eff}<span class="unit">mm</span></span></div>
+        <div class="result-row"><span class="result-label">Ast,required</span><span class="result-value">${r.Ast_req.toFixed(0)}<span class="unit">mm²/m</span></span></div>
+        <div class="result-row"><span class="result-label">Ast,minimum</span><span class="result-value">${r.Ast_min.toFixed(0)}<span class="unit">mm²/m</span></span></div>
+        <div class="result-row"><span class="result-label">Ast,provided</span><span class="result-value" style="color:var(--green)">${r.Ast_prov.toFixed(0)}<span class="unit">mm²/m</span></span></div>
+        <div class="result-row"><span class="result-label">Utilization</span><span class="result-value" style="color:${r.Md_service/r.Mu_lim <= 1 ? 'var(--green)' : 'var(--red)'}">${(r.Md_service/r.Mu_lim*100).toFixed(1)}%</span></div>
+      </div>
+    </div>`;
+  }
+
+  // Card 3: Deflections
+  html += `<div class="result-card">
+    <div class="result-card-header">Deflection Checks</div>
+    <div class="result-card-body">
+      <div class="result-row"><span class="result-label">δ,construction</span><span class="result-value" style="color:${r.defl_constr_ok?'var(--green)':'var(--red)'}">${r.defl_constr.toFixed(2)}<span class="unit">mm</span></span></div>
+      <div class="result-row"><span class="result-label">δ,limit (constr.)</span><span class="result-value">${r.defl_lim_constr.toFixed(1)}<span class="unit">mm</span></span></div>
+      <div class="result-row"><span class="result-label">δ,service (LL)</span><span class="result-value" style="color:${r.defl_service_ok?'var(--green)':'var(--red)'}">${r.defl_service.toFixed(2)}<span class="unit">mm</span></span></div>
+      <div class="result-row"><span class="result-label">δ,limit (service)</span><span class="result-value">${r.defl_lim_service.toFixed(1)}<span class="unit">mm</span></span></div>
+      ${r.type === 'composite' ? `<div class="result-row"><span class="result-label">δ,total (constr+LL)</span><span class="result-value">${r.defl_total.toFixed(2)}<span class="unit">mm</span></span></div>` : ''}
+      <div class="result-row"><span class="result-label">Constr. utilization</span><span class="result-value" style="color:${r.defl_constr_ok?'var(--green)':'var(--red)'}">${(r.defl_constr/r.defl_lim_constr*100).toFixed(1)}%</span></div>
+      <div class="result-row"><span class="result-label">Service utilization</span><span class="result-value" style="color:${r.defl_service_ok?'var(--green)':'var(--red)'}">${(r.defl_service/r.defl_lim_service*100).toFixed(1)}%</span></div>
+    </div>
+  </div>`;
+
+  // Card 4: Stresses
+  if (r.type === 'composite') {
+    html += `<div class="result-card">
+      <div class="result-card-header">Construction Stage — Deck Sheet</div>
+      <div class="result-card-body">
+        <div class="result-row"><span class="result-label">σ,bending (construction)</span><span class="result-value" style="color:${r.stress_ok?'var(--green)':'var(--red)'}">${r.stress_constr.toFixed(2)}<span class="unit">MPa</span></span></div>
+        <div class="result-row"><span class="result-label">Allowable fyp/γm0</span><span class="result-value">${(r.fyp/γm0).toFixed(1)}<span class="unit">MPa</span></span></div>
+        <div class="result-row"><span class="result-label">Utilization</span><span class="result-value" style="color:${r.stress_ok?'var(--green)':'var(--red)'}">${(r.stress_constr/(r.fyp/γm0)*100).toFixed(1)}%</span></div>
+        <div class="result-row"><span class="result-label">Construction method</span><span class="result-value">${r.constrMethod === 'propped' ? 'PROPPED' : 'UN-PROPPED'}</span></div>
+        <div class="result-row"><span class="result-label">Min ds ≥ 50mm</span><span class="result-value" style="color:${r.min_ds_ok?'var(--green)':'var(--red)'}">${r.min_ds_ok?'✓ OK':'✗ FAIL'}</span></div>
+        <div class="result-row"><span class="result-label">Span vs max (${DECK[selectedProfile].maxSpan}m)</span><span class="result-value" style="color:${r.span_ok?'var(--green)':'var(--red)'}">${r.span_ok?'✓ OK':'✗ EXCEEDS'}</span></div>
+      </div>
+    </div>`;
+  }
+
+  html += `</div>`; // end results-grid
+
+  // Design Checks Summary
+  html += `<div class="section-title" style="margin-top:8px;">Design Check Summary</div>
+  <div class="checks-grid">`;
+
+  if (r.type === 'composite') {
+    html += checkItem('Sagging Moment', r.moment_ok,
+      `Md = ${r.Md_service.toFixed(2)} kN·m/m`, `Mds = ${r.Mdss.toFixed(2)} kN·m/m`,
+      r.util_moment, 'IS 11384:2022 Annex C Table 22');
+    html += checkItem('Hogging Moment', r.hogging_ok,
+      `Md = ${r.Md_service.toFixed(2)} kN·m/m`, `Mds,hog = ${r.Mdsh.toFixed(2)} kN·m/m`,
+      r.Md_service/r.Mdsh, 'IS 11384:2022 Annex C Table 22');
+    html += checkItem('Constr. Deflection', r.defl_constr_ok,
+      `δ = ${r.defl_constr.toFixed(2)} mm`, `Limit = ${r.defl_lim_constr.toFixed(1)} mm`,
+      r.util_defl_c, `Span/${r.deflConstrN} (User defined)`);
+    html += checkItem('Service Deflection', r.defl_service_ok,
+      `δ = ${r.defl_service.toFixed(2)} mm`, `Limit = ${r.defl_lim_service.toFixed(1)} mm`,
+      r.util_defl_s, `Span/${r.deflServiceN} (User defined)`);
+    html += checkItem('Constr. Stress', r.stress_ok,
+      `σ = ${r.stress_constr.toFixed(1)} MPa`, `fyp/γm0 = ${(r.fyp/γm0).toFixed(1)} MPa`,
+      r.stress_constr/(r.fyp/γm0), 'IS 11384:2022 Cl.12.4.2');
+    html += checkItem('Min Slab Thickness', r.min_ds_ok,
+      `ds = ${r.ds}mm`, `Min = 50mm`,
+      r.ds >= 50 ? 0.5 : 1.2, 'IS 11384:2022 Cl.12.2.1');
+    html += checkItem('Span Range Check', r.span_ok,
+      `Span = ${r.span_m.toFixed(2)}m`, `Max = ${DECK[selectedProfile].maxSpan}m (JSW catalog)`,
+      r.span_m / DECK[selectedProfile].maxSpan, 'JSW Catalog');
+  } else {
+    const ut_m = r.Md_service / r.Mu_lim;
+    html += checkItem('Bending (RC Slab)', r.moment_ok,
+      `Md = ${r.Md_service.toFixed(2)} kN·m/m`, `Mu,lim = ${r.Mu_lim.toFixed(2)} kN·m/m`,
+      ut_m, 'IS 456:2000');
+    html += checkItem('Constr. Deflection', r.defl_constr_ok,
+      `δ = ${r.defl_constr.toFixed(2)} mm`, `Limit = ${r.defl_lim_constr.toFixed(1)} mm`,
+      r.defl_constr/r.defl_lim_constr, 'User defined');
+    html += checkItem('Service Deflection', r.defl_service_ok,
+      `δ = ${r.defl_service.toFixed(2)} mm`, `Limit = ${r.defl_lim_service.toFixed(1)} mm`,
+      r.defl_service/r.defl_lim_service, 'IS 456:2000');
+    html += checkItem('Ast Provision', r.Ast_prov >= r.Ast_req, 
+      `Prov = ${r.Ast_prov.toFixed(0)} mm²/m`, `Req = ${r.Ast_req.toFixed(0)} mm²/m`,
+      r.Ast_req / r.Ast_prov, 'IS 456:2000 Cl.26.5');
+  }
+
+  html += `</div>`;
+
+  // Calculation Trace
+  html += `<div class="calc-trace">
+    <div class="calc-trace-header">
+      <span>CALCULATION TRACE — IS 11384:2022</span>
+      <button class="toggle-trace" onclick="toggleTrace(this)">SHOW ▾</button>
+    </div>
+    <div class="calc-trace-body" id="traceBody">`;
+
+  trace.forEach(t => {
+    if (t.sec) {
+      html += `<div class="trace-section">── ${t.sec}</div>`;
+    } else {
+      html += `<div class="trace-line"><span class="trace-eq">${t.eq}</span><span class="trace-clause">${t.clause}</span></div>`;
+    }
+  });
+
+  html += `</div></div>`;
+
+  rc.innerHTML = html;
+
+  // Draw section diagram
+  setTimeout(() => drawSection(r), 100);
+}
+
+function checkItem(name, ok, actual, limit, util, clause) {
+  const cls = ok ? 'pass' : 'fail';
+  const utilCapped = Math.min(util * 100, 120);
+  const barCls = util <= 0.85 ? 'pass' : util <= 1.0 ? 'warn' : 'fail';
+  return `<div class="check-item ${cls}">
+    <div class="check-header">
+      <span class="check-name ${cls}">${name}</span>
+      <span class="check-badge ${cls}">${ok ? '✓ PASS' : '✗ FAIL'}</span>
+    </div>
+    <div class="check-values">${actual} | ${limit}</div>
+    <div class="util-bar-wrap">
+      <div class="util-bar-bg">
+        <div class="util-bar-fill ${barCls}" style="width:${Math.min(utilCapped,100)}%"></div>
+      </div>
+    </div>
+    <div class="check-clause">Ref: ${clause}</div>
+  </div>`;
+}
+
+function toggleTrace(btn) {
+  const body = document.getElementById('traceBody');
+  body.classList.toggle('show');
+  btn.textContent = body.classList.contains('show') ? 'HIDE ▴' : 'SHOW ▾';
+}
+
+// ─── SECTION DIAGRAM ──────────────────────────────────────────────
+function drawSection(r) {
+  const canvas = document.getElementById('sectionCanvas');
+  if (!canvas) return;
+  const W = canvas.offsetWidth * (window.devicePixelRatio || 1);
+  const H = 160 * (window.devicePixelRatio || 1);
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  const scale = window.devicePixelRatio || 1;
+  ctx.scale(scale, scale);
+  const cw = canvas.offsetWidth, ch = 160;
+
+  ctx.clearRect(0, 0, cw, ch);
+  ctx.fillStyle = '#181e2e';
+  ctx.fillRect(0, 0, cw, ch);
+
+  // Draw 3 cycles of deck profile
+  const cycles = 4;
+  const dp = r.dp, ds = r.ds, dsp = r.dsp;
+  const maxH = dsp + 20;
+  const sc = (ch - 30) / maxH; // scale factor
+
+  const startX = 30, totalW = cw - 60;
+  const cycleW = totalW / cycles;
+  const baseY = ch - 15;
+
+  // Concrete slab
+  ctx.fillStyle = 'rgba(120,140,180,0.25)';
+  ctx.fillRect(startX, baseY - dsp * sc, totalW, ds * sc);
+  ctx.strokeStyle = 'rgba(120,140,180,0.5)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(startX, baseY - dsp * sc, totalW, ds * sc);
+
+  // Deck profile (trapezoidal ribs)
+  const bb = r.dp === 50 ? 135 : r.dp === 60 ? 133 : 122; // bottom width
+  const tt = 200; // pitch
+  const bbSc = (bb / tt) * cycleW;
+  const ttSc = cycleW;
+
+  for (let i = 0; i < cycles; i++) {
+    const x0 = startX + i * cycleW;
+    const overhang = (ttSc - bbSc) / 2;
+
+    ctx.beginPath();
+    ctx.moveTo(x0, baseY - dp * sc);
+    ctx.lineTo(x0 + overhang, baseY);
+    ctx.lineTo(x0 + overhang + bbSc, baseY);
+    ctx.lineTo(x0 + ttSc, baseY - dp * sc);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(232,160,32,0.35)';
+    ctx.fill();
+    ctx.strokeStyle = '#e8a020';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+
+  // Labels
+  ctx.fillStyle = '#7a8fae';
+  ctx.font = `${10 * (1/scale)}px DM Mono, monospace`; // fix for scale
+  // Actually just use fixed px since ctx is already scaled:
+  ctx.font = '10px DM Mono, monospace';
+  ctx.textAlign = 'right';
+  ctx.fillText(`ds = ${ds}mm`, startX - 4, baseY - dsp * sc + ds * sc / 2 + 4);
+  ctx.fillText(`dp = ${dp}mm`, startX - 4, baseY - dp * sc / 2 + 4);
+
+  ctx.fillStyle = '#c8d4e8';
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 11px Rajdhani, sans-serif';
+  ctx.fillText(`dsp = ${dsp}mm`, startX + totalW / 2, baseY - dsp * sc - 6);
+
+  // NA line for composite
+  if (r.type === 'composite' && r.cg !== undefined) {
+    const naY = baseY - r.cg * sc;
+    ctx.setLineDash([4, 3]);
+    ctx.strokeStyle = 'rgba(58,123,213,0.7)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(startX, naY);
+    ctx.lineTo(startX + totalW, naY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#7ab4ff';
+    ctx.font = '9px DM Mono, monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(`NA`, startX + totalW + 3, naY + 3);
+  }
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────
+window.onload = () => {
+  selectProfile('TR50', document.querySelector('.profile-card'));
+  updateGaugeInfo();
+};
+
+window.addEventListener('resize', () => {
+  const rc = document.getElementById('resultsContent');
+  if (rc && rc.style.display !== 'none') {
+    const canvas = document.getElementById('sectionCanvas');
+    if (canvas) {
+      // redraw if results visible
+    }
+  }
+});
+</script>
+</body>
+</html>
