@@ -1,11 +1,10 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Composite Deck Slab Design | IS 11384:2022 | IBS</title>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg:#0a0d14;--bg2:#111520;--bg3:#181e2e;--panel:#1a2035;
@@ -448,11 +447,12 @@ function resetForm(){
 
 // ── CALCULATE
 function calculate(){
+  try{
   const p=selectedProfile,deck=DECK[p];
   const g=document.getElementById('gaugeSelect').value;
   const gr=parseInt(document.getElementById('steelGrade').value);
   const gd=deck.gauges[g];
-  if(!gd){alert('Gauge not available.');return;}
+  if(!gd){alert('Gauge not available for this profile/grade combination.');return;}
   const span=parseFloat(document.getElementById('span').value);
   const ds=parseFloat(document.getElementById('ds').value);
   const fck=parseFloat(document.getElementById('fck').value);
@@ -619,6 +619,10 @@ function calculate(){
 
   lastResults=results;lastTrace=trace;
   renderResults(results,trace);
+  }catch(err){
+    console.error('Calculation error:',err);
+    alert('Calculation error: '+err.message+'\n\nPlease check your inputs and try again.');
+  }
 }
 
 // ── RENDER
@@ -787,8 +791,16 @@ function drawSection(r){
 // ─────────────────────────────────────────────────────────────────
 function generatePDF(){
   if(!lastResults){alert('Please run a design check first.');return;}
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const btn=document.getElementById('pdfBtn');
+  btn.textContent='⏳  LOADING PDF ENGINE...';
+  btn.disabled=true;
+
+  function _buildPDF(){
+    btn.textContent='⬇  DOWNLOAD PDF REPORT';
+    btn.disabled=false;
+    if(!window.jspdf){alert('PDF library failed to load. Please check your internet connection and try again.');return;}
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   const r=lastResults,trace=lastTrace;
   const W=210,H=297,M=15,cw=W-2*M;
   let y=M;
@@ -1067,6 +1079,22 @@ function generatePDF(){
   // Save
   const fname=`IBS_DeckSlab_${(document.getElementById('projNo').value||'Report').replace(/\s+/g,'-')}_${r.profile}_${r.span}mm.pdf`;
   doc.save(fname);
+  } // end _buildPDF
+
+  // Load jsPDF on demand if not already loaded
+  if(window.jspdf){
+    _buildPDF();
+  } else {
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    s.onload=()=>{ setTimeout(_buildPDF,100); };
+    s.onerror=()=>{
+      btn.textContent='⬇  DOWNLOAD PDF REPORT';
+      btn.disabled=false;
+      alert('Could not load PDF library. Please check your internet connection.');
+    };
+    document.head.appendChild(s);
+  }
 }
 
 // ── INIT
