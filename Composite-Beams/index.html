@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IBS-TOOL-004 | Composite Beam Design (IS 11384:2022)</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="../index.html" class="logo-wrap">
+        <svg class="logo-svg" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="30" cy="30" r="28" fill="none" stroke="#1a3a5c" stroke-width="2"/>
+          <!-- Three blades -->
+          <path d="M30 30 L30 8 A22 22 0 0 1 49.1 41 Z" fill="#1a3a5c"/>
+          <path d="M30 30 L49.1 41 A22 22 0 0 1 10.9 41 Z" fill="#2e6da4"/>
+          <path d="M30 30 L10.9 41 A22 22 0 0 1 30 8 Z" fill="#8ba8c4"/>
+          <circle cx="30" cy="30" r="5" fill="white"/>
+        </svg>
+        <div class="logo-text">
+          <span class="company">INTEGRATED BUILDING SERVICES</span>
+          <span class="tagline">Structural Consultancy</span>
+        </div>
+      </a>
+      <nav class="header-nav">
+        <a href="../index.html" class="nav-link">← Suite Home</a>
+        <span class="tool-badge">IBS-TOOL-004</span>
+      </nav>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-grid-bg"></div>
+    <div class="hero-inner">
+      <div class="hero-label">IS 11384 : 2022 | Composite Beams</div>
+      <h1 class="hero-title">Composite Beam<br><em>Design Tool</em></h1>
+      <p class="hero-sub">ISMB / ISWB sections · JSW deck profiles · Full ULS + SLS checks · Stud connector design</p>
+      <div class="hero-chips">
+        <span class="chip">IS 11384:2022</span>
+        <span class="chip">IS 800:2007</span>
+        <span class="chip">IS 808</span>
+        <span class="chip">JSW TR50 / TR60+ / TR80+</span>
+      </div>
+    </div>
+    <div class="hero-beam-illus" aria-hidden="true">
+      <svg viewBox="0 0 480 160" xmlns="http://www.w3.org/2000/svg">
+        <!-- Concrete slab -->
+        <rect x="20" y="10" width="440" height="50" rx="3" fill="#d0dce8" stroke="#8ba8c4" stroke-width="1.5"/>
+        <text x="240" y="40" text-anchor="middle" font-size="12" fill="#2e6da4" font-family="IBM Plex Mono">Composite Slab</text>
+        <!-- Studs -->
+        <line x1="100" y1="60" x2="100" y2="80" stroke="#1a3a5c" stroke-width="3"/>
+        <circle cx="100" cy="75" r="5" fill="#2e6da4"/>
+        <line x1="190" y1="60" x2="190" y2="80" stroke="#1a3a5c" stroke-width="3"/>
+        <circle cx="190" cy="75" r="5" fill="#2e6da4"/>
+        <line x1="290" y1="60" x2="290" y2="80" stroke="#1a3a5c" stroke-width="3"/>
+        <circle cx="290" cy="75" r="5" fill="#2e6da4"/>
+        <line x1="380" y1="60" x2="380" y2="80" stroke="#1a3a5c" stroke-width="3"/>
+        <circle cx="380" cy="75" r="5" fill="#2e6da4"/>
+        <!-- Web with openings -->
+        <rect x="228" y="80" width="24" height="65" fill="#1a3a5c"/>
+        <ellipse cx="240" cy="100" rx="14" ry="10" fill="#0a1e30"/>
+        <ellipse cx="240" cy="125" rx="14" ry="10" fill="#0a1e30"/>
+        <!-- Flanges -->
+        <rect x="160" y="78" width="160" height="10" rx="2" fill="#2e6da4"/>
+        <rect x="160" y="143" width="160" height="10" rx="2" fill="#2e6da4"/>
+        <!-- Support -->
+        <polygon points="20,155 50,155 35,140" fill="#8ba8c4"/>
+        <polygon points="430,155 460,155 445,140" fill="#8ba8c4"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- MAIN LAYOUT -->
+  <main class="main-layout">
+    <!-- INPUT PANEL -->
+    <aside class="input-panel">
+      <div class="panel-header">
+        <span class="panel-icon">⚙</span>
+        <h2>Design Parameters</h2>
+      </div>
+
+      <!-- SECTION 00: PROJECT DETAILS -->
+      <div class="input-section proj-section">
+        <div class="section-title">00 · Project Information</div>
+        <div class="form-grid" style="grid-template-columns:1fr;">
+          <div class="field">
+            <label>Project Name</label>
+            <input type="text" id="proj_name" placeholder="e.g. Residency Tower, Andheri" />
+          </div>
+          <div class="field">
+            <label>Building / Block</label>
+            <input type="text" id="proj_building" placeholder="e.g. Block A – Commercial Podium" />
+          </div>
+          <div class="field">
+            <label>Floor Level</label>
+            <input type="text" id="proj_floor" placeholder="e.g. Ground Floor + Mezzanine" />
+          </div>
+          <div class="field">
+            <label>Beam ID / Mark</label>
+            <input type="text" id="proj_beam_id" placeholder="e.g. B-101 / FB-GF-01" />
+          </div>
+        </div>
+        <div class="form-grid" style="margin-top:8px;">
+          <div class="field">
+            <label>Designed by</label>
+            <input type="text" id="eng_designer" placeholder="Engineer name" />
+          </div>
+          <div class="field">
+            <label>Checked by</label>
+            <input type="text" id="eng_checker" placeholder="Checker name" />
+          </div>
+          <div class="field">
+            <label>Job / Ref. No.</label>
+            <input type="text" id="proj_ref" placeholder="e.g. IBS-2025-047" />
+          </div>
+          <div class="field">
+            <label>Date</label>
+            <input type="date" id="proj_date" />
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 1: GEOMETRY -->
+      <div class="input-section">
+        <div class="section-title">01 · Geometry</div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Span L (m)</label>
+            <input type="number" id="span" value="6" step="0.5" min="1" max="20"/>
+          </div>
+          <div class="field">
+            <label>Beam Spacing / Trib. Width (mm)</label>
+            <input type="number" id="beam_spacing" value="1200" step="100" min="300"/>
+          </div>
+          <div class="field">
+            <label>Beam Position</label>
+            <select id="beam_position">
+              <option value="interior">Interior</option>
+              <option value="edge">Edge</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 2: DECK & SLAB -->
+      <div class="input-section">
+        <div class="section-title">02 · Deck & Slab</div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Deck Profile</label>
+            <select id="deck_profile">
+              <option value="TR50">JSW TR50 (rib h = 50 mm)</option>
+              <option value="TR60">JSW TR60+ (rib h = 60 mm)</option>
+              <option value="TR80">JSW TR80+ (rib h = 80 mm)</option>
+              <option value="flat">Flat Slab (no deck)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Topping above deck Tc (mm)</label>
+            <input type="number" id="Tc" value="50" step="5" min="50"/>
+            <span class="field-note">min 50 mm per IS 11384</span>
+          </div>
+          <div class="field">
+            <label>Concrete grade fck (MPa)</label>
+            <select id="fck">
+              <option value="25">M25</option>
+              <option value="30">M30</option>
+              <option value="35">M35</option>
+              <option value="40">M40</option>
+            </select>
+          </div>
+        </div>
+        <div class="info-box" id="deck-info">
+          <span class="info-label">Deck info will appear here</span>
+        </div>
+      </div>
+
+      <!-- SECTION 3: STEEL SECTION -->
+      <div class="input-section">
+        <div class="section-title">03 · Steel Section</div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Section Type</label>
+            <select id="section_type">
+              <option value="ISMB">ISMB (IS 808)</option>
+              <option value="ISWB">ISWB (IS 808)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Section Size</label>
+            <select id="section_name"><!-- populated by JS --></select>
+          </div>
+          <div class="field">
+            <label>Mode</label>
+            <select id="mode">
+              <option value="castellated">Castellated (hexagonal openings)</option>
+              <option value="cellular">Cellular (circular openings)</option>
+              <option value="I">Plain I-Beam (no openings)</option>
+            </select>
+          </div>
+          <div class="field" id="do-field">
+            <label>Opening diameter Do (mm)</label>
+            <input type="number" id="Do" value="0" step="10" min="0"/>
+            <span class="field-note">0 = auto from section depth × 0.6</span>
+          </div>
+          <div class="field">
+            <label>Steel Grade</label>
+            <select id="fy_grade">
+              <option value="250">E250 (fy = 250 MPa)</option>
+              <option value="350">E350 (fy = 350 MPa)</option>
+              <option value="410">E410 (fy = 410 MPa)</option>
+            </select>
+          </div>
+        </div>
+        <div class="section-preview" id="section-preview">
+          <div class="preview-label">Section Properties</div>
+          <div class="preview-grid" id="preview-props"></div>
+        </div>
+      </div>
+
+      <!-- SECTION 4: LOADS -->
+      <div class="input-section">
+        <div class="section-title">04 · Loads</div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Live load LL (kg/m²)</label>
+            <input type="number" id="LL" value="300" step="50" min="0"/>
+          </div>
+          <div class="field">
+            <label>Floor finish FF (kg/m²)</label>
+            <input type="number" id="FF" value="150" step="25" min="0"/>
+          </div>
+          <div class="field">
+            <label>Partition PR (kg/m²)</label>
+            <input type="number" id="PR" value="0" step="25" min="0"/>
+          </div>
+          <div class="field">
+            <label>Filling FI (kg/m²)</label>
+            <input type="number" id="FI" value="0" step="25" min="0"/>
+          </div>
+          <div class="field">
+            <label>Construction load CL (kg/m²)</label>
+            <input type="number" id="CL" value="75" step="25" min="0"/>
+          </div>
+          <div class="field">
+            <label>Wall line load WL (kg/m)</label>
+            <input type="number" id="WL" value="0" step="50" min="0"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 5: CONSTRUCTION & DEFLECTION -->
+      <div class="input-section">
+        <div class="section-title">05 · Construction & Deflection</div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Propped during construction?</label>
+            <select id="propped">
+              <option value="no">No (unpropped)</option>
+              <option value="yes">Yes (propped)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Fraction of LL for deflection</label>
+            <input type="number" id="frac_live" value="1.0" step="0.1" min="0" max="1.0"/>
+          </div>
+          <div class="field">
+            <label>Load factor (ULS)</label>
+            <select id="load_factor">
+              <option value="1.5">1.5 (IS 875 / IS 800)</option>
+              <option value="1.2">1.2 (DL+LL+WL combo)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 6: STUDS -->
+      <div class="input-section">
+        <div class="section-title">06 · Shear Connectors</div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Stud diameter (mm)</label>
+            <select id="stud_dia">
+              <option value="auto">Auto-select</option>
+              <option value="16">16 mm</option>
+              <option value="19">19 mm</option>
+              <option value="22">22 mm</option>
+              <option value="25">25 mm</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Degree of shear connection η</label>
+            <select id="eta">
+              <option value="1.0">1.0 (Full composite)</option>
+              <option value="0.8">0.8 (80%)</option>
+              <option value="0.6">0.6 (60%)</option>
+              <option value="0.5">0.5 (50% min)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- DESIGN BUTTON -->
+      <button class="design-btn" id="designBtn" onclick="runDesign()">
+        <span class="btn-icon">▶</span>
+        RUN COMPOSITE BEAM DESIGN
+      </button>
+    </aside>
+
+    <!-- OUTPUT PANEL -->
+    <section class="output-panel" id="outputPanel">
+      <div class="output-placeholder" id="outputPlaceholder">
+        <div class="placeholder-icon">⬡</div>
+        <p>Configure parameters and click <strong>Run Design</strong></p>
+        <p class="placeholder-sub">Results will appear here with full IS 11384:2022 checks</p>
+      </div>
+      <div id="outputContent" style="display:none">
+        <!-- Results injected by JS -->
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <span class="footer-tool">IBS-TOOL-004</span>
+        <span class="footer-std">IS 11384:2022 · IS 800:2007 · IS 808</span>
+      </div>
+      <div class="footer-right">
+        <span>© 2025 Integrated Building Services</span>
+        <a href="../index.html">Suite Home</a>
+      </div>
+    </div>
+    <p class="footer-disclaimer">
+      This tool is for preliminary design and estimation only. All results must be verified by a qualified structural engineer. 
+      Output does not constitute a stamped structural calculation.
+    </p>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="engine.js"></script>
+  <script src="report.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
