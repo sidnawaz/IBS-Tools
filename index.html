@@ -30,6 +30,8 @@
       --teal-bg:    rgba(14,165,233,0.1);
       --red:        #f85149;
       --red-bg:     rgba(248,81,73,0.1);
+      --amber:      #e8a020;
+      --amber-bg:   rgba(232,160,32,0.1);
       --font:       'IBM Plex Sans', sans-serif;
       --mono:       'IBM Plex Mono', monospace;
       --radius:     10px;
@@ -184,18 +186,20 @@
     .tool-card.coming-soon:hover { transform: none; box-shadow: none; }
 
     /* Color themes per tool */
-    .theme-blue  ::before, .tool-card.theme-blue::before  { background: var(--accent); }
-    .tool-card.theme-blue:hover   { border-color: var(--accent); box-shadow: 0 8px 32px var(--accent-glow); }
+    .tool-card.theme-blue::before   { background: var(--accent); }
+    .tool-card.theme-blue:hover     { border-color: var(--accent);  box-shadow: 0 8px 32px var(--accent-glow); }
     .tool-card.theme-green::before  { background: var(--green); }
-    .tool-card.theme-green:hover  { border-color: var(--green);  box-shadow: 0 8px 32px rgba(63,185,80,0.15); }
+    .tool-card.theme-green:hover    { border-color: var(--green);   box-shadow: 0 8px 32px rgba(63,185,80,0.15); }
+    .tool-card.theme-amber::before  { background: var(--amber); }
+    .tool-card.theme-amber:hover    { border-color: var(--amber);   box-shadow: 0 8px 32px rgba(232,160,32,0.18); }
     .tool-card.theme-orange::before { background: var(--orange); }
-    .tool-card.theme-orange:hover { border-color: var(--orange); box-shadow: 0 8px 32px rgba(210,153,34,0.15); }
+    .tool-card.theme-orange:hover   { border-color: var(--orange);  box-shadow: 0 8px 32px rgba(210,153,34,0.15); }
     .tool-card.theme-purple::before { background: var(--purple); }
-    .tool-card.theme-purple:hover { border-color: var(--purple); box-shadow: 0 8px 32px rgba(139,92,246,0.15); }
+    .tool-card.theme-purple:hover   { border-color: var(--purple);  box-shadow: 0 8px 32px rgba(139,92,246,0.15); }
     .tool-card.theme-teal::before   { background: var(--teal); }
-    .tool-card.theme-teal:hover   { border-color: var(--teal);   box-shadow: 0 8px 32px rgba(14,165,233,0.15); }
+    .tool-card.theme-teal:hover     { border-color: var(--teal);    box-shadow: 0 8px 32px rgba(14,165,233,0.15); }
     .tool-card.theme-red::before    { background: var(--red); }
-    .tool-card.theme-red:hover    { border-color: var(--red);    box-shadow: 0 8px 32px rgba(248,81,73,0.15); }
+    .tool-card.theme-red:hover      { border-color: var(--red);     box-shadow: 0 8px 32px rgba(248,81,73,0.15); }
 
     .tool-icon {
       font-size: 2rem;
@@ -235,6 +239,13 @@
       border: 1px solid var(--border);
       color: var(--text-dim);
     }
+    /* Highlight tag for new tool */
+    .tool-tag.tag-amber {
+      border-color: rgba(232,160,32,0.5);
+      color: var(--amber);
+      background: var(--amber-bg);
+    }
+
     .tool-footer {
       display: flex;
       align-items: center;
@@ -251,6 +262,21 @@
     .status-planned { background: var(--bg-card2);  color: var(--text-dim); border: 1px solid var(--border); }
     .tool-arrow { color: var(--text-dim); font-size: 18px; transition: transform 0.2s; }
     .tool-card:hover .tool-arrow { transform: translateX(4px); }
+
+    /* NEW badge ribbon */
+    .new-ribbon {
+      position: absolute;
+      top: 14px; right: -1px;
+      background: var(--amber);
+      color: #0d1117;
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 3px 10px 3px 8px;
+      border-radius: 4px 0 0 4px;
+      text-transform: uppercase;
+    }
 
     /* ── Code References Panel ── */
     .codes-grid {
@@ -330,8 +356,8 @@
       <div class="hero-stat-label">Steel Design Code</div>
     </div>
     <div class="hero-stat">
-      <div class="hero-stat-num">IS 1893</div>
-      <div class="hero-stat-label">Seismic Standard</div>
+      <div class="hero-stat-num">IS 11384</div>
+      <div class="hero-stat-label">Composite Construction</div>
     </div>
   </div>
 </section>
@@ -341,7 +367,7 @@
   <div class="section-title">Design Tools</div>
   <div class="tools-grid">
 
-    <!-- Slab Design — LIVE -->
+    <!-- 001 — RCC Slab Design — LIVE -->
     <a class="tool-card theme-blue active" href="slab-design/index.html">
       <span class="tool-icon">📐</span>
       <div class="tool-name">RCC Slab Design</div>
@@ -362,7 +388,7 @@
       </div>
     </a>
 
-    <!-- Retaining Wall — LIVE -->
+    <!-- 002 — Retaining Wall — LIVE -->
     <a class="tool-card theme-green active" href="retaining-wall/index.html">
       <span class="tool-icon">🧱</span>
       <div class="tool-name">Retaining Wall Design</div>
@@ -382,11 +408,33 @@
       </div>
     </a>
 
-    <!-- Isolated Footing — Coming Soon -->
+    <!-- 003 — Composite Deck Slab — LIVE (NEW) -->
+    <a class="tool-card theme-amber active" href="deck-slab/index.html">
+      <div class="new-ribbon">NEW</div>
+      <span class="tool-icon">🔩</span>
+      <div class="tool-name">Composite Deck Slab Design</div>
+      <div class="tool-code">IBS-TOOL-003</div>
+      <div class="tool-desc">
+        JSW TR50 / TR60+ / TR80+ profiles. Composite &amp; non-composite design paths. Sagging &amp; hogging moment, construction-stage stress, user-defined deflection limits per IS 11384:2022.
+      </div>
+      <div class="tool-tags">
+        <span class="tool-tag tag-amber">IS 11384:2022</span>
+        <span class="tool-tag">IS 456</span>
+        <span class="tool-tag">TR50 / TR60+ / TR80+</span>
+        <span class="tool-tag">JSW Catalog</span>
+        <span class="tool-tag">Composite</span>
+      </div>
+      <div class="tool-footer">
+        <span class="tool-status status-live">● Live</span>
+        <span class="tool-arrow">→</span>
+      </div>
+    </a>
+
+    <!-- 004 — Isolated Footing — Coming Soon -->
     <div class="tool-card theme-orange coming-soon">
       <span class="tool-icon">🏛️</span>
       <div class="tool-name">Isolated Footing Design</div>
-      <div class="tool-code">IBS-TOOL-003</div>
+      <div class="tool-code">IBS-TOOL-004</div>
       <div class="tool-desc">
         Square & rectangular isolated footings. Safe bearing capacity, bending, shear (one-way & punching), and development length checks per IS 456.
       </div>
@@ -401,11 +449,11 @@
       </div>
     </div>
 
-    <!-- Column Design — Coming Soon -->
+    <!-- 005 — Column Design — Coming Soon -->
     <div class="tool-card theme-purple coming-soon">
       <span class="tool-icon">🏢</span>
       <div class="tool-name">RCC Column Design</div>
-      <div class="tool-code">IBS-TOOL-004</div>
+      <div class="tool-code">IBS-TOOL-005</div>
       <div class="tool-desc">
         Axially loaded & uniaxially eccentric columns. Interaction diagram based design. Slender column checks, lateral ties and helical reinforcement per IS 456.
       </div>
@@ -420,11 +468,11 @@
       </div>
     </div>
 
-    <!-- Beam Design — Planned -->
+    <!-- 006 — Beam Design — Planned -->
     <div class="tool-card theme-teal coming-soon">
       <span class="tool-icon">📏</span>
       <div class="tool-name">RCC Beam Design</div>
-      <div class="tool-code">IBS-TOOL-005</div>
+      <div class="tool-code">IBS-TOOL-006</div>
       <div class="tool-desc">
         Singly & doubly reinforced beams. T-beam and L-beam design. Shear reinforcement, stirrup spacing, and deflection checks per IS 456 and SP 16.
       </div>
@@ -439,11 +487,11 @@
       </div>
     </div>
 
-    <!-- Staircase — Planned -->
+    <!-- 007 — Staircase — Planned -->
     <div class="tool-card theme-red coming-soon">
       <span class="tool-icon">🪜</span>
       <div class="tool-name">Staircase Design</div>
-      <div class="tool-code">IBS-TOOL-006</div>
+      <div class="tool-code">IBS-TOOL-007</div>
       <div class="tool-desc">
         Dog-leg and open-well staircase design. Waist slab and tread-riser method. Mid-landing beam, effective span, and reinforcement per IS 456.
       </div>
@@ -471,6 +519,7 @@
     <div class="code-pill"><div class="code-pill-icon">📙</div><div><div class="code-pill-name">SP 16 : 1980</div><div class="code-pill-desc">Design Aids for IS 456</div></div></div>
     <div class="code-pill"><div class="code-pill-icon">📕</div><div><div class="code-pill-name">IS 1904 : 1986</div><div class="code-pill-desc">Design of Foundations</div></div></div>
     <div class="code-pill"><div class="code-pill-icon">📘</div><div><div class="code-pill-name">IS 800 : 2007</div><div class="code-pill-desc">General Steel Construction</div></div></div>
+    <div class="code-pill"><div class="code-pill-icon">📒</div><div><div class="code-pill-name">IS 11384 : 2022</div><div class="code-pill-desc">Composite Construction</div></div></div>
     <div class="code-pill"><div class="code-pill-icon">📕</div><div><div class="code-pill-name">IS 1893 : 2016</div><div class="code-pill-desc">Seismic Design Criteria</div></div></div>
   </div>
 </div>
