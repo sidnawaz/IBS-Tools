@@ -161,20 +161,20 @@ function buildResultHTML(R) {
     </div>`;
   };
 
-  const { sec, geom, inp, loads, bending, shear, vier, vier_ok, defl, trans, studs, ltb, fn, fn_ok } = R;
+  const { sec, geom, inp, loads, bending, shear, vier, vier_ok, defl, trans, studs, ltb, fn, fn_ok, webPost } = R;
 
   // Check cards
   const cards = [
-    utilCard('Bending (ULS)',        R.flex_util, R.flex_ok, `Md = ${kNm(bending.phi_Md)} kN·m`),
-    utilCard('Shear (ULS)',          shear.util,  shear.ok,  `Vn = ${kN(shear.Vn_total)} kN`),
-    vier ? utilCard('Vierendeel',    vier.combined, vier_ok, 'At opening') : '',
-    utilCard('LTB (Construction)',   ltb.ltb_util, ltb.ltb_ok, `χ_LT = ${f3(ltb.chi_LT)}`),
-    utilCard('Deflect. B (SLS)',     defl.delta_B_total/defl.limit, defl.partB_ok, `${mm(defl.delta_B_total)} / ${mm(defl.limit)} mm`),
-    utilCard('Deflect. C (LT)',      defl.delta_C/defl.limit, defl.partC_ok, `${mm(defl.delta_C)} / ${mm(defl.limit)} mm`),
-    utilCard('Floor Frequency',      4.0/Math.max(fn,0.01), fn_ok, `fn = ${f2(fn)} Hz`),
+    utilCard('Bending (ULS)',            R.flex_util,  R.flex_ok,  `φMd = ${kNm(bending.phi_Md)} kN·m`),
+    utilCard('Shear (ULS)',              shear.util,   shear.ok,   `Vn = ${kN(shear.Vn_total)} kN`),
+    vier ? utilCard('Vierendeel',        vier.combined,vier_ok,    `Mv = ${kNm(vier.Mv)} kN·m`) : '',
+    webPost ? utilCard('Web Post Shear', webPost.util_post, webPost.post_ok, `τ = ${webPost.tau_post.toFixed(1)} MPa`) : '',
+    utilCard('Deflect. B (SLS)',         defl.delta_B_total/defl.limit, defl.partB_ok, `${mm(defl.delta_B_total)} / ${mm(defl.limit)} mm`),
+    utilCard('Deflect. C (Long-term)',   defl.delta_C/defl.limit,       defl.partC_ok, `${mm(defl.delta_C)} / ${mm(defl.limit)} mm`),
+    utilCard('Floor Frequency',          4.0/Math.max(fn,0.01), fn_ok,  `fn = ${f2(fn)} Hz`),
   ].filter(Boolean).join('');
 
-  // Tables
+  // Table row helper
   const tr = (label, val, unit='', ok=null) => `
     <tr>
       <td>${label}</td>
@@ -188,132 +188,178 @@ function buildResultHTML(R) {
       <div class="detail-block-title">Load Summary</div>
       <div id="load-bars-canvas" class="load-bar-wrap" style="margin-bottom:12px"></div>
       <table class="dtable">
-        <thead><tr><th>Load</th><th>Value</th><th>Unit</th><th></th></tr></thead>
+        <thead><tr><th>Load Component</th><th>Value</th><th>Unit</th><th></th></tr></thead>
         <tbody>
-          ${tr('Slab self weight', f2(loads.slab_kgm2), 'kg/m²')}
-          ${tr('Live load LL', f2(inp.LL), 'kg/m²')}
-          ${tr('Floor finish FF', f2(inp.FF), 'kg/m²')}
-          ${tr('Partition PR', f2(inp.PR), 'kg/m²')}
-          ${tr('Service UDL', f2(loads.service_kgpm), 'kg/m')}
-          ${tr('Factored UDL (×' + inp.load_factor + ')', f2(loads.factored_kgpm), 'kg/m')}
-          ${tr('Factored Shear Vf', kN(loads.V_fact), 'kN')}
-          ${tr('Factored Moment Mf', kNm(loads.M_fact), 'kN·m')}
+          ${tr('Slab self weight (25 kN/m³ × (Td/2+Tc))', f2(loads.slab_kgm2),    'kg/m²')}
+          ${tr('Live load LL',                              f2(inp.LL),              'kg/m²')}
+          ${tr('Floor finish FF',                           f2(inp.FF),              'kg/m²')}
+          ${tr('Partition PR',                              f2(inp.PR),              'kg/m²')}
+          ${tr('Filling FI',                                f2(inp.FI),              'kg/m²')}
+          ${tr('Construction load CL',                      f2(inp.CL),              'kg/m²')}
+          ${tr('Wall line load WL',                         f2(inp.WL),              'kg/m')}
+          ${tr('Service UDL (total)',                        f2(loads.service_kgpm),  'kg/m')}
+          ${tr('Factored UDL (×'+inp.load_factor+')',        f2(loads.factored_kgpm), 'kg/m')}
+          ${tr('Construction UDL (slab SW + CL)',            f2(loads.w_constr_Npmm*1000/MATERIALS.G), 'kg/m')}
+          ${tr('Factored Shear Vf',                         kN(loads.V_fact),        'kN')}
+          ${tr('Factored Moment Mf',                        kNm(loads.M_fact),       'kN·m')}
         </tbody>
       </table>
     </div>`;
 
   const bendTable = `
     <div class="detail-block animate-in stagger-2">
-      <div class="detail-block-title">Bending — IS 11384:2022 Table 16</div>
+      <div class="detail-block-title">Bending Capacity — IS 11384:2022 Table 16</div>
       <table class="dtable">
         <thead><tr><th>Item</th><th>Value</th><th>Unit</th><th>Status</th></tr></thead>
         <tbody>
-          ${tr('PNA Case', bending.caseNo)}
-          ${tr('Neutral axis xu', f2(bending.xu_mm), 'mm')}
-          ${tr('Nominal Md', kNm(bending.Md_Nmm), 'kN·m')}
-          ${tr('Design φMd', kNm(bending.phi_Md), 'kN·m')}
-          ${tr('Applied Mf', kNm(loads.M_fact), 'kN·m')}
-          ${tr('Utilisation M/φMd', f3(R.flex_util), '', R.flex_ok)}
+          ${tr('PNA Case',                                  bending.caseNo.toString())}
+          ${tr('Effective concrete depth ds',                f2(bending.ds),           'mm')}
+          ${tr('Steel centroid from slab top dc',            f2(bending.dc),           'mm')}
+          ${tr('a = fy / (0.36·fck)',                        f3(inp.fy/(0.36*inp.fck)))}
+          ${tr('Plastic neutral axis xu',                    f2(bending.xu_mm),        'mm')}
+          ${tr('Nominal capacity Md',                        kNm(bending.Md_Nmm),      'kN·m')}
+          ${tr('Design capacity φMd  (φ = 0.90)',            kNm(bending.phi_Md),      'kN·m')}
+          ${tr('Applied moment Mf',                          kNm(loads.M_fact),        'kN·m')}
+          ${tr('Utilisation Mf / φMd',                       f3(R.flex_util),          '', R.flex_ok)}
         </tbody>
       </table>
     </div>`;
 
   const shearTable = `
     <div class="detail-block animate-in stagger-2">
-      <div class="detail-block-title">Shear — IS 800:2007 Cl.8.4</div>
+      <div class="detail-block-title">Shear Capacity — IS 800:2007 Cl. 8.4</div>
       <table class="dtable">
         <thead><tr><th>Item</th><th>Value</th><th>Unit</th><th>Status</th></tr></thead>
         <tbody>
-          ${tr('h_post (web between openings)', f2(shear.h_post), 'mm')}
-          ${tr('h/tw ratio', f2(shear.h_over_tw))}
-          ${tr('Shear stress Tv', f2(shear.Tv_MPa), 'N/mm²')}
-          ${tr('Shear capacity Vn', kN(shear.Vn_total), 'kN')}
-          ${tr('Applied Vf', kN(loads.V_fact), 'kN')}
-          ${tr('Utilisation V/Vn', f3(shear.util), '', shear.ok)}
+          ${tr('Shear section',                   shear.shear_type)}
+          ${tr('Tee height h_tee (each)',          f2(shear.h_tee||shear.h_web),  'mm')}
+          ${tr('h / tw ratio',                     f2(shear.h_over_tw))}
+          ${tr('Shear buckling stress Tv',         f2(shear.Tv_MPa),              'MPa')}
+          ${tr('Total shear area Aw (both tees)',  f0(shear.Aw_total),            'mm²')}
+          ${tr('Total shear capacity Vn',          kN(shear.Vn_total),            'kN')}
+          ${tr('Applied shear Vf',                 kN(loads.V_fact),              'kN')}
+          ${tr('Utilisation Vf / Vn',              f3(shear.util),                '', shear.ok)}
         </tbody>
       </table>
-      ${shear.note ? `<div class="notes-box"><strong>Web Note</strong>${shear.note}</div>` : ''}
+      ${shear.note ? `<div class="notes-box"><strong>Web Check</strong>${shear.note}</div>` : ''}
     </div>`;
 
-  const deflTable = `
+  const vierTable = vier ? `
     <div class="detail-block animate-in stagger-3">
-      <div class="detail-block-title">Deflection — IS 11384:2022</div>
+      <div class="detail-block-title">Vierendeel Check — IS 11384:2022 / SCI P355</div>
+      <div class="notes-box" style="margin-bottom:10px">
+        <strong>Method</strong>Each tee carries V/2. Secondary moment Mv = (V/2) × (Do/2). 
+        Checked at first opening from support (worst combined M+V case).
+      </div>
       <table class="dtable">
         <thead><tr><th>Item</th><th>Value</th><th>Unit</th><th>Status</th></tr></thead>
         <tbody>
-          ${tr('Ec (concrete)', f0(trans.E_c), 'MPa')}
-          ${tr('Modular ratio n (short-term)', f2(trans.m_short))}
-          ${tr('Modular ratio n (long-term)', f2(trans.m_long))}
-          ${tr('EI composite (short)', (trans.EI_short/1e12).toFixed(3), 'GN·mm²')}
-          ${tr('Part A — Construction δ', mm(defl.delta_A), 'mm')}
-          ${tr('Part B — Short-term live δ', mm(defl.delta_B_short), 'mm')}
-          ${tr('Part B total (SLS)', mm(defl.delta_B_total), 'mm', defl.partB_ok)}
-          ${tr('Part B limit (L/360 ≤ 20)', mm(defl.limit), 'mm')}
-          ${tr('Part C — Long-term δ', mm(defl.delta_C), 'mm', defl.partC_ok)}
-          ${tr('Total LT (A + C)', mm(defl.delta_total_LT), 'mm')}
-          ${tr('Floor frequency fn', f2(fn), 'Hz', fn_ok)}
-        </tbody>
-      </table>
-    </div>`;
-
-  const studTable = studs ? `
-    <div class="detail-block animate-in stagger-4">
-      <div class="detail-block-title">Shear Studs — IS 11384:2022 Cl.9</div>
-      <div id="stud-layout-canvas"></div>
-      <table class="dtable" style="margin-top:10px">
-        <thead><tr><th>Item</th><th>Value</th><th>Unit</th><th>Status</th></tr></thead>
-        <tbody>
-          ${tr('Stud diameter', studs.dia, 'mm')}
-          ${tr('Qn (characteristic)', (studs.Qn_N/1000).toFixed(2), 'kN')}
-          ${tr('Deck reduction factor', (studs.Rg * studs.Rp).toFixed(3))}
-          ${tr('Qn reduced', (studs.Qn_red/1000).toFixed(2), 'kN')}
-          ${tr('Slab compression Cs', (studs.C_slab/1000).toFixed(2), 'kN')}
-          ${tr('Target (η = '+inp.eta+')', (studs.C_target/1000).toFixed(2), 'kN')}
-          ${tr('Studs per half-span', studs.n_half)}
-          ${tr('Total studs', studs.n_total)}
-          ${tr('Spacing', f0(studs.spacing), 'mm', studs.ok)}
-          ${tr('Min allowed', f0(studs.s_min), 'mm')}
-          ${tr('Max allowed', f0(studs.s_max), 'mm')}
+          ${tr('Opening length ao = Do',           f0(vier.a_o),            'mm')}
+          ${tr('Shear per tee V_tee = V/2',        kN(vier.V_tee),          'kN')}
+          ${tr('Vierendeel moment Mv = V_tee×ao/2',kNm(vier.Mv),            'kN·m')}
+          ${tr('Lever arm (tee c/c)',               f2(vier.lever_arm),      'mm')}
+          ${tr('Tee section area',                  f0(vier.A_tee),          'mm²')}
+          ${tr('Tee plastic moment Mp_tee',         kNm(vier.Mp_tee),        'kN·m')}
+          ${tr('Axial (compression, top tee)',       kN(vier.N_c_first),      'kN')}
+          ${tr('UC — top tee (comp + Vier.bending)',f3(vier.UC_top_first),   '', vier.UC_top_first<=1.0)}
+          ${tr('UC — bottom tee (tens + Vier.bending)',f3(vier.UC_bot_first),'', vier.UC_bot_first<=1.0)}
+          ${tr('UC — at support (pure Vierendeel)', f3(vier.UC_support),     '', vier.UC_support<=1.0)}
+          ${tr('Combined (governing)',              f3(vier.combined),        '', vier_ok)}
         </tbody>
       </table>
     </div>` : '';
 
-  const vierTable = vier ? `
+  const webPostTable = webPost ? `
     <div class="detail-block animate-in stagger-3">
-      <div class="detail-block-title">Vierendeel — At Beam Opening</div>
+      <div class="detail-block-title">Web Post Horizontal Shear</div>
       <table class="dtable">
         <thead><tr><th>Item</th><th>Value</th><th>Unit</th><th>Status</th></tr></thead>
         <tbody>
-          ${tr('Vierendeel moment Mv', kNm(vier.Mv), 'kN·m')}
-          ${tr('Tee capacity φMn_tee', kNm(0.9*vier.Mn_tee), 'kN·m')}
-          ${tr('Axial N_tee', kN(vier.N_tee), 'kN')}
-          ${tr('Bending utilisation', f3(vier.util_bend))}
-          ${tr('Axial utilisation', f3(vier.util_axial))}
-          ${tr('Combined (M+N)', f3(vier.combined), '', vier_ok)}
+          ${tr('Web post width',          f2(webPost.web_post_w), 'mm')}
+          ${tr('Horizontal shear V_H',    kN(webPost.V_H),        'kN')}
+          ${tr('Post shear area A_post',  f0(webPost.A_post),     'mm²')}
+          ${tr('Shear stress τ_post',     f2(webPost.tau_post),   'MPa')}
+          ${tr('Design shear stress fv',  f2(webPost.fv_design),  'MPa')}
+          ${tr('Utilisation',             f3(webPost.util_post),  '', webPost.post_ok)}
         </tbody>
       </table>
     </div>` : '';
 
   const ltbTable = `
     <div class="detail-block animate-in stagger-3">
-      <div class="detail-block-title">LTB — IS 800:2007 Cl.8.2 (Construction Stage)</div>
+      <div class="detail-block-title">Lateral Torsional Buckling — IS 800:2007 Cl. 8.2.1</div>
+      <div class="notes-box" style="margin-bottom:0;background:#d4f0e0;border-color:#1a7a4a">
+        <strong style="color:#1a7a4a;font-size:0.85rem">✓ LTB — NOT APPLICABLE AT ANY STAGE</strong>
+        <ul style="margin-top:6px;color:#1a5a3a;font-size:0.82rem">
+          <li style="margin-bottom:3px"><strong>Step 1:</strong> Steel beam erected on bearings.</li>
+          <li style="margin-bottom:3px"><strong>Step 2:</strong> Profiled deck sheet laid on top flange and fixed with self-drilling screws.</li>
+          <li style="margin-bottom:3px"><strong>Step 3:</strong> Shear studs welded <em>through the deck</em> to the top flange — <strong>FULL CONTINUOUS LATERAL RESTRAINT provided BEFORE concrete is poured.</strong></li>
+          <li style="margin-bottom:3px"><strong>Step 4:</strong> Concrete poured and composite action develops.</li>
+          <li style="margin-top:6px;padding-top:6px;border-top:1px solid #a0c8a0">
+            Top compression flange is restrained against lateral displacement and twist from Step 3 onward — 
+            covering both the construction stage and the in-service composite stage.<br>
+            <strong>Code ref: IS 800:2007 Cl. 8.2.1 Note 1</strong> — LTB need not be checked when 
+            the compression flange is restrained against lateral bending throughout its length.
+          </li>
+        </ul>
+      </div>
+    </div>`;
+
+  const deflTable = `
+    <div class="detail-block animate-in stagger-4">
+      <div class="detail-block-title">Deflection — IS 11384:2022</div>
       <table class="dtable">
         <thead><tr><th>Item</th><th>Value</th><th>Unit</th><th>Status</th></tr></thead>
         <tbody>
-          ${tr('Slenderness λ_LT', f3(ltb.lambda_LT))}
-          ${tr('Reduction χ_LT', f3(ltb.chi_LT))}
-          ${tr('Md_ltb', kNm(ltb.Md_ltb), 'kN·m')}
-          ${tr('M_construction', kNm(ltb.M_construction_Nmm), 'kN·m')}
-          ${tr('Utilisation', f3(ltb.ltb_util), '', ltb.ltb_ok)}
+          ${tr('Ec = 5000√fck',                    f0(trans.E_c),                'MPa')}
+          ${tr('Modular ratio n (short-term)',       f2(trans.m_short))}
+          ${tr('Modular ratio n (long-term)',        f2(trans.m_long))}
+          ${tr('Castellated Ix (flanges displaced)', (trans.I_steel_castex/1e4).toFixed(0), 'cm⁴')}
+          ${tr('EI composite (short-term)',          (trans.EI_short/1e12).toFixed(3),'GN·mm²')}
+          ${tr('EI composite (long-term)',           (trans.EI_long/1e12).toFixed(3), 'GN·mm²')}
+          ${tr('Part A — Construction δ (slab SW+CL on steel)',  mm(defl.delta_A),  'mm')}
+          ${tr('Part B — Short-term live δ (composite)',         mm(defl.delta_B_short), 'mm')}
+          ${tr('Part B total SLS (A+B if unpropped)',            mm(defl.delta_B_total), 'mm', defl.partB_ok)}
+          ${tr('Limit = min(L/360, 20 mm)',                      mm(defl.limit),    'mm')}
+          ${tr('Part C — Long-term sustained δ (composite)',     mm(defl.delta_C),  'mm', defl.partC_ok)}
+          ${tr('Total long-term (A + C)',                        mm(defl.delta_total_LT), 'mm')}
+          ${tr('δ DL on composite (for frequency)',              mm(defl.delta_DL_comp),  'mm')}
+          ${tr('Floor frequency fn = (π/2)√(g/δ_DL)',           f2(fn),            'Hz', fn_ok)}
         </tbody>
       </table>
     </div>`;
+
+  const studTable = studs ? `
+    <div class="detail-block animate-in stagger-4">
+      <div class="detail-block-title">Shear Stud Connectors — IS 11384:2022 Cl. 9</div>
+      <div id="stud-layout-canvas"></div>
+      <table class="dtable" style="margin-top:10px">
+        <thead><tr><th>Item</th><th>Value</th><th>Unit</th><th>Status</th></tr></thead>
+        <tbody>
+          ${tr('Stud diameter',                        studs.dia,                              'mm')}
+          ${tr('Qn characteristic (fck scaled)',        (studs.Qn_char/1000).toFixed(2),       'kN')}
+          ${tr('Rg (IS 11384:2022 Table 14)',           studs.Rg.toFixed(2))}
+          ${tr('Rp (strong position)',                   studs.Rp.toFixed(2))}
+          ${tr('Qn reduced (Rg·Rp·Qn)',                 (studs.Qn_red/1000).toFixed(2),        'kN')}
+          ${tr('C_concrete (0.36·fck·beff·ds)',          (studs.C_conc/1000).toFixed(1),        'kN')}
+          ${tr('C_steel (As·fy/γm0)',                    (studs.C_steel/1000).toFixed(1),       'kN')}
+          ${tr('C_total (governing)',                     (studs.C_total/1000).toFixed(1),       'kN')}
+          ${tr('Governs by',                             studs.governs_by)}
+          ${tr('Target force (η × C_total)',             (studs.C_target/1000).toFixed(1),      'kN')}
+          ${tr('Studs per half-span',                    studs.n_half.toString())}
+          ${tr('Total studs (full span)',                 studs.n_total.toString())}
+          ${tr('Spacing (uniform over half-span)',        f0(studs.spacing),                     'mm', studs.ok)}
+          ${tr('Min spacing: max(5d, 100 mm)',            f0(studs.s_min),                       'mm')}
+          ${tr('Max spacing: min(6Ts, 600 mm)',           f0(studs.s_max),                       'mm')}
+        </tbody>
+      </table>
+    </div>` : '';
 
   return `
     <div class="result-header">
       <div>
         <div class="result-title">Design Results — ${sec.name} · ${geom.mode.toUpperCase()}</div>
-        <div class="result-subtitle">L = ${inp.L} m · beff = ${f0(R.beff_mm)} mm · Ts = ${inp.Ts} mm · fck = M${inp.fck} · fy = ${inp.fy} MPa</div>
+        <div class="result-subtitle">L = ${inp.L} m · beff = ${f0(R.beff_mm)} mm · Ts = ${inp.Ts} mm · M${inp.fck} concrete · fy = ${inp.fy} MPa · η = ${inp.eta}</div>
       </div>
       ${statusBadge(R.overall_ok)}
     </div>
@@ -330,21 +376,25 @@ function buildResultHTML(R) {
       ${bendTable}
       ${shearTable}
       ${vierTable}
+      ${webPostTable}
       ${ltbTable}
       ${deflTable}
       ${studTable}
 
-      <!-- Notes -->
+      <!-- Design Notes -->
       <div class="notes-box animate-in stagger-5">
-        <strong>Design Notes</strong>
+        <strong>Design Basis Notes</strong>
         <ul>
-          <li>Bending per IS 11384:2022 Table 16 — PNA Case ${bending.caseNo}</li>
-          <li>Shear per IS 800:2007 Cl. 8.4 with plate buckling check</li>
-          ${geom.Do > 0 ? `<li>Vierendeel at openings: Dₒ = ${f0(geom.Do)} mm; d_new = ${f2(geom.d_new)} mm</li>` : ''}
-          <li>Deflection: L/360 limit capped at 20 mm per IS 11384</li>
-          <li>Long-term creep factor Kc = ${MATERIALS.Kc}</li>
-          <li>Construction: ${inp.propped ? 'PROPPED (Part A ignored)' : 'UNPROPPED (Part A included)'}</li>
-          ${shear.stiff_req ? '<li style="color:#a82020"><strong>Web stiffeners required at openings</strong></li>' : ''}
+          <li>Bending — IS 11384:2022 Table 16, PNA Case ${bending.caseNo}. Effective concrete depth = ${f2(bending.ds)} mm (Tc above ribs).</li>
+          <li>Shear — IS 800:2007 Cl.8.4. ${geom.Do > 0 ? `At openings: two tees, each h_tee = ${f2(shear.h_tee||0)} mm.` : 'Full web shear.'}</li>
+          ${geom.Do > 0 ? `<li>Vierendeel — Mv = (V/2)×(Do/2) at each tee per SCI P355. Top and bottom tee checked separately.</li>` : ''}
+          ${geom.Do > 0 ? `<li>Web post horizontal shear checked between openings.</li>` : ''}
+          <li><strong>LTB — NOT APPLICABLE at any stage.</strong> Deck sheet fixed + studs welded to top flange BEFORE concrete pour — full continuous lateral restraint from erection stage onward. IS 800:2007 Cl.8.2.1 Note 1.</li>
+          <li>Deflection limits: min(L/360, 20 mm) per IS 11384:2022 Cl.12.</li>
+          <li>Floor frequency uses DL deflection on composite section. Minimum 4 Hz per ISO 10137.</li>
+          <li>Stud Rg = ${studs?studs.Rg:'—'}, Rp = ${studs?studs.Rp:'—'} per IS 11384:2022 Table 14. Spacing limit: min(6Ts, 600) = ${studs?f0(studs.s_max):'—'} mm.</li>
+          <li>Construction: ${inp.propped ? 'PROPPED — Part A deflection = 0; LTB Le = L/2.' : 'UNPROPPED — Part A deflection included; LTB Le = L.'}</li>
+          ${shear.stiff_req ? '<li style="color:#a82020"><strong>⚠ Web stiffeners required at openings — h/tw exceeds limit.</strong></li>' : ''}
         </ul>
       </div>
     </div>
