@@ -9,14 +9,54 @@
 // ============================================================
 "use strict";
 
-// ── CDN loader ──────────────────────────────────────────────
+// ── Robust CDN loader with multiple fallbacks ────────────────
+// docx library is large (~1MB). We try 3 CDN sources in order.
+// The UMD build exposes the global variable 'docx'.
+const DOCX_CDNS = [
+  // jsdelivr — most reliable, definitely has 8.5.0
+  'https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js',
+  // unpkg — second fallback
+  'https://unpkg.com/docx@8.5.0/build/index.umd.js',
+  // older 7.8.2 on cdnjs as last resort (API compatible)
+  'https://cdnjs.cloudflare.com/ajax/libs/docx/7.8.2/docx.umd.min.js',
+];
+
 function loadScript(src) {
   return new Promise((resolve, reject) => {
-    if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+    // If already loaded from this src, resolve immediately
+    if (document.querySelector(`script[data-docx-cdn]`) && window.docx) {
+      resolve(); return;
+    }
     const s = document.createElement('script');
-    s.src = src; s.onload = resolve; s.onerror = reject;
+    s.src = src;
+    s['data-docx-cdn'] = '1';
+    s.onload  = () => { resolve(); };
+    s.onerror = () => { reject(new Error('CDN failed: ' + src)); };
     document.head.appendChild(s);
   });
+}
+
+async function loadDocxLibrary() {
+  // Already loaded?
+  if (window.docx && window.docx.Document) return;
+
+  let lastErr;
+  for (const url of DOCX_CDNS) {
+    try {
+      await loadScript(url);
+      // Verify it actually loaded the global
+      if (window.docx && window.docx.Document) return;
+      throw new Error('Library loaded but window.docx not found');
+    } catch (e) {
+      lastErr = e;
+      console.warn('docx CDN attempt failed:', url, e.message);
+    }
+  }
+  throw new Error(
+    'Could not load the Word document library from any CDN.\n' +
+    'Please check your internet connection and try again.\n' +
+    'Last error: ' + (lastErr ? lastErr.message : 'unknown')
+  );
 }
 
 // ── Read project fields from UI ─────────────────────────────
@@ -48,15 +88,22 @@ function readProjectInfo() {
 
 // ── Main generator ──────────────────────────────────────────
 async function generateReport(R) {
-  if (typeof docx === 'undefined') {
-    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/docx/8.0.4/docx.umd.min.js');
-  }
+  // Load docx library (tries 3 CDNs automatically)
+  await loadDocxLibrary();
 
   const {
     Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
     Header, Footer, AlignmentType, BorderStyle, WidthType, ShadingType,
     PageBreak, PageNumber, LevelFormat
   } = docx;
+
+  // ── Validate result object ────────────────────────────────
+  if (!R || R.error) {
+    throw new Error('Design result is invalid or missing. Please run the design first.');
+  }
+  if (!R.sec || !R.geom || !R.loads || !R.bending) {
+    throw new Error('Design result is incomplete. Please re-run the design and try again.');
+  }
 
   const PI = readProjectInfo();
 
@@ -699,6 +746,9 @@ async function generateReport(R) {
   });
 
   const blob = await Packer.toBlob(doc);
+  if (!blob || blob.size === 0) {
+    throw new Error('Generated document is empty. This may be a library version issue.');
+  }
   const url  = URL.createObjectURL(blob);
   const a    = window.document.createElement('a');
   const beamTag = (PI.beam_id || 'Beam').replace(/[^a-zA-Z0-9\-]/g, '_');

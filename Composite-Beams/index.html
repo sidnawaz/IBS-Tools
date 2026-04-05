@@ -347,5 +347,17 @@
   <script src="engine.js"></script>
   <script src="report.js"></script>
   <script src="app.js"></script>
+  <!-- Pre-load docx library in background so report download is instant -->
+  <script>
+    window.addEventListener('load', function() {
+      // Start loading the docx library silently in the background
+      // This way it's ready when the user clicks Download
+      setTimeout(function() {
+        loadDocxLibrary().catch(function(e) {
+          console.warn('Background docx preload failed (will retry on download):', e.message);
+        });
+      }, 2000); // Wait 2s after page load so it doesn't compete with other resources
+    });
+  </script>
 </body>
 </html>

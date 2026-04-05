@@ -399,7 +399,7 @@ function buildResultHTML(R) {
       </div>
     </div>
     <div class="report-btn-wrap">
-      <button class="report-btn" onclick="generateReport(lastResult)">⬇ Download Word Report (.docx)</button>
+      <button class="report-btn" id="downloadBtn" onclick="handleDownload(this)">⬇ Download Word Report (.docx)</button>
       <button class="report-btn secondary" onclick="window.print()">🖨 Print</button>
     </div>`;
 }
@@ -589,3 +589,46 @@ function drawLoadBars(R) {
 
 // Helper for getElementById shorthand
 function id(s) { return document.getElementById(s); }
+
+// ── Download handler — proper async with user feedback ──────
+async function handleDownload(btn) {
+  if (!lastResult) {
+    alert('Please run the design first before downloading the report.');
+    return;
+  }
+
+  // Show loading state on button
+  const orig = btn.innerHTML;
+  btn.innerHTML = '⏳ Generating report...';
+  btn.disabled  = true;
+  btn.style.opacity = '0.7';
+
+  try {
+    await generateReport(lastResult);
+    // Success — brief confirmation
+    btn.innerHTML = '✓ Downloaded!';
+    btn.style.background = '#1a7a4a';
+    setTimeout(() => {
+      btn.innerHTML  = orig;
+      btn.disabled   = false;
+      btn.style.opacity = '1';
+      btn.style.background = '';
+    }, 2500);
+  } catch (err) {
+    console.error('Report generation error:', err);
+    btn.innerHTML = '✗ Error — see console';
+    btn.style.background = '#a82020';
+    btn.disabled = false;
+    setTimeout(() => {
+      btn.innerHTML  = orig;
+      btn.disabled   = false;
+      btn.style.opacity = '1';
+      btn.style.background = '';
+    }, 4000);
+    // Show user-friendly error
+    const msg = err && err.message ? err.message : String(err);
+    alert('Report download failed.\n\nError: ' + msg +
+          '\n\nPlease check your internet connection and try again.\n' +
+          'If the problem persists, try a different browser (Chrome recommended).');
+  }
+}
